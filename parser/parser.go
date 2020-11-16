@@ -17,10 +17,21 @@ type Statement interface {
 
 type Instruction string
 
-type IfStatement struct {
+type If struct {
 	Condition string
 	Then      Block
 	Else      Block
+}
+
+type Switch struct {
+	Subject string
+	Cases   []SwitchCase
+	Default Block
+}
+
+type SwitchCase struct {
+	Condition string
+	Block     Block
 }
 
 func ParseString(code string) (*Structogram, error) {
@@ -78,7 +89,7 @@ func ParseString(code string) (*Structogram, error) {
 			return Instruction(eatString()), true
 		} else if seesID("if") {
 			skip()
-			var ifElse IfStatement
+			var ifElse If
 			ifElse.Condition = eatString()
 			ifElse.Then = parseBlock()
 			if seesID("else") {
@@ -86,6 +97,27 @@ func ParseString(code string) (*Structogram, error) {
 				ifElse.Else = parseBlock()
 			}
 			return ifElse, true
+		} else if seesID("switch") {
+			skip()
+			var switchStmt Switch
+			switchStmt.Subject = eatString()
+			eat('{')
+			for seesID("case") {
+				skip()
+				if seesID("default") {
+					skip()
+					switchStmt.Default = parseBlock()
+				} else {
+					condition := eatString()
+					block := parseBlock()
+					switchStmt.Cases = append(switchStmt.Cases, SwitchCase{
+						Condition: condition,
+						Block:     block,
+					})
+				}
+			}
+			eat('}')
+			return switchStmt, true
 		}
 		return nil, false
 	}

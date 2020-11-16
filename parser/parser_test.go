@@ -72,7 +72,7 @@ if "condition" {
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		IfStatement{
+		If{
 			Condition: "condition",
 			Then: Block{
 				Instruction("do this"),
@@ -92,7 +92,7 @@ if "false" {
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		IfStatement{
+		If{
 			Condition: "false",
 			Then: Block{
 				Instruction("then this"),
@@ -100,6 +100,54 @@ if "false" {
 			Else: Block{
 				Instruction("else this"),
 			},
+		},
+	}})
+}
+
+func TestSwitchCanBeEmpty(t *testing.T) {
+	s, err := ParseString(`
+switch "thing" {}
+`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Switch{Subject: "thing"},
+	}})
+}
+
+func TestSwitchWithCases(t *testing.T) {
+	s, err := ParseString(`
+switch "x" {
+	case "1" {}
+	case "2" { "two" }
+}
+`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Switch{
+			Subject: "x",
+			Cases: []SwitchCase{
+				{Condition: "1"},
+				{Condition: "2", Block: Block{Instruction("two")}},
+			},
+		},
+	}})
+}
+
+func TestSwitchWithDefaultCases(t *testing.T) {
+	s, err := ParseString(`
+switch "x" {
+	case "1" {}
+	case default { "default" }
+}
+`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Switch{
+			Subject: "x",
+			Cases: []SwitchCase{
+				{Condition: "1"},
+			},
+			Default: Block{Instruction("default")},
 		},
 	}})
 }
