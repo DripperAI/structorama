@@ -58,7 +58,7 @@ func tokenize(code string) ([]token, error) {
 	// The main tokenize loop uses only the helper functions declared above.
 	for cur() != EOF {
 		switch cur() {
-		case '(', ')', '{', '}':
+		case '{', '}':
 			typ := tokenType(cur())
 			next()
 			emit(typ)

@@ -1,13 +1,13 @@
 package parser
 
 import (
-	"github.com/gonutz/check"
-
 	"testing"
+
+	"github.com/gonutz/check"
 )
 
 func TestTokenization(t *testing.T) {
-	tokens, err := tokenize(`title(){}"" "î" "\n\\\""` + "\n\tNextLine")
+	tokens, err := tokenize(`title{}"" "î" "\n\\\""` + "\n\tNextLine")
 	check.Eq(t, err, nil)
 	tok := func(want token) {
 		t.Helper()
@@ -16,16 +16,14 @@ func TestTokenization(t *testing.T) {
 	}
 
 	tok(token{typ: tokenID, text: "title", col: 1, line: 1})
-	tok(token{typ: '(', text: "(", col: 6, line: 1})
-	tok(token{typ: ')', text: ")", col: 7, line: 1})
-	tok(token{typ: '{', text: "{", col: 8, line: 1})
-	tok(token{typ: '}', text: "}", col: 9, line: 1})
-	tok(token{typ: tokenString, text: `""`, col: 10, line: 1})
-	tok(token{typ: tokenSpace, text: " ", col: 12, line: 1})
-	tok(token{typ: tokenString, text: `"î"`, col: 13, line: 1})
-	tok(token{typ: tokenSpace, text: " ", col: 16, line: 1})
-	tok(token{typ: tokenString, text: `"\n\\\""`, col: 17, line: 1})
-	tok(token{typ: tokenSpace, text: "\n\t", col: 25, line: 1})
+	tok(token{typ: '{', text: "{", col: 6, line: 1})
+	tok(token{typ: '}', text: "}", col: 7, line: 1})
+	tok(token{typ: tokenString, text: `""`, col: 8, line: 1})
+	tok(token{typ: tokenSpace, text: " ", col: 10, line: 1})
+	tok(token{typ: tokenString, text: `"î"`, col: 11, line: 1})
+	tok(token{typ: tokenSpace, text: " ", col: 14, line: 1})
+	tok(token{typ: tokenString, text: `"\n\\\""`, col: 15, line: 1})
+	tok(token{typ: tokenSpace, text: "\n\t", col: 23, line: 1})
 	tok(token{typ: tokenID, text: "NextLine", col: 2, line: 2})
 
 	check.Eq(t, len(tokens), 0) // All tokens checked off the list.
