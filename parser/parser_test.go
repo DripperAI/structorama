@@ -61,7 +61,7 @@ func TestRegularInstructionsAreJustStrings(t *testing.T) {
 	}})
 }
 
-func TestIfCanHaveNoElse(t *testing.T) {
+func TestIfHasNoElse(t *testing.T) {
 	s, err := ParseString(`
 if "condition" {
 	"do this"
@@ -80,7 +80,7 @@ if "condition" {
 	}})
 }
 
-func TestIfCanHaveElse(t *testing.T) {
+func TestIfElseHasBoth(t *testing.T) {
 	s, err := ParseString(`
 if "false" {
 	"then this"
@@ -90,7 +90,7 @@ if "false" {
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		If{
+		IfElse{
 			Condition: "false",
 			Then: Block{
 				Instruction("then this"),
@@ -135,7 +135,7 @@ func TestSwitchWithDefaultCases(t *testing.T) {
 	s, err := ParseString(`
 switch "x" {
 	case "1" {}
-	case default { "default" }
+	case default {}
 }
 `)
 	check.Eq(t, err, nil)
@@ -144,8 +144,8 @@ switch "x" {
 			Subject: "x",
 			Cases: []SwitchCase{
 				{Condition: "1"},
+				{IsDefault: true},
 			},
-			Default: Block{Instruction("default")},
 		},
 	}})
 }
@@ -168,5 +168,59 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 			Condition: "condition",
 			Block:     Block{Instruction("do")},
 		},
+	}})
+}
+
+func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
+	s, err := ParseString(`do { "do" } while "condition"`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		DoWhile{
+			Condition: "condition",
+			Block:     Block{Instruction("do")},
+		},
+	}})
+}
+
+func TestLoopsCanHaveBreaks(t *testing.T) {
+	s, err := ParseString(`while { break "destination" }`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		While{
+			Block: Block{Break("destination")},
+		},
+	}})
+}
+
+func TestCallBlockHasOneStringInstruction(t *testing.T) {
+	s, err := ParseString(`call "instruction"`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Call("instruction"),
+	}})
+}
+
+func TestParallelExecutionHasSubBlocks(t *testing.T) {
+	s, err := ParseString(`
+parallel {
+	{
+		"block 1"
+	}
+	{}
+	{
+		"block 3"
+	}
+}
+
+parallel {}
+`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Parallel{
+			Block{Instruction("block 1")},
+			Block{},
+			Block{Instruction("block 3")},
+		},
+		Parallel{},
 	}})
 }

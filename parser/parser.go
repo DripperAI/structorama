@@ -20,25 +20,43 @@ type Instruction string
 type If struct {
 	Condition string
 	Then      Block
+}
+
+type IfElse struct {
+	Condition string
+	Then      Block
 	Else      Block
 }
 
 type Switch struct {
 	Subject string
 	Cases   []SwitchCase
-	Default Block
 }
 
 type SwitchCase struct {
+	// IsDefault and Condition are exclusive, a switch case is either the
+	// default (case default {...}) or has a Condition (case "condition" {...}).
+	IsDefault bool
 	Condition string
 	Block     Block
 }
+
+type Call string
+
+type Parallel []Block
 
 type While struct {
 	// Condition can be empty, in that case this is an infinite loop.
 	Condition string
 	Block     Block
 }
+
+type DoWhile struct {
+	Condition string
+	Block     Block
+}
+
+type Break string
 
 func ParseString(code string) (*Structogram, error) {
 	var s Structogram
@@ -95,14 +113,20 @@ func ParseString(code string) (*Structogram, error) {
 			return Instruction(eatString()), true
 		} else if seesID("if") {
 			skip()
-			var ifElse If
-			ifElse.Condition = eatString()
-			ifElse.Then = parseBlock()
+			condition := eatString()
+			then := parseBlock()
 			if seesID("else") {
 				skip()
-				ifElse.Else = parseBlock()
+				return IfElse{
+					Condition: condition,
+					Then:      then,
+					Else:      parseBlock(),
+				}, true
 			}
-			return ifElse, true
+			return If{
+				Condition: condition,
+				Then:      then,
+			}, true
 		} else if seesID("switch") {
 			skip()
 			var switchStmt Switch
@@ -110,17 +134,15 @@ func ParseString(code string) (*Structogram, error) {
 			eat('{')
 			for seesID("case") {
 				skip()
+				var c SwitchCase
 				if seesID("default") {
 					skip()
-					switchStmt.Default = parseBlock()
+					c.IsDefault = true
 				} else {
-					condition := eatString()
-					block := parseBlock()
-					switchStmt.Cases = append(switchStmt.Cases, SwitchCase{
-						Condition: condition,
-						Block:     block,
-					})
+					c.Condition = eatString()
 				}
+				c.Block = parseBlock()
+				switchStmt.Cases = append(switchStmt.Cases, c)
 			}
 			eat('}')
 			return switchStmt, true
@@ -132,6 +154,33 @@ func ParseString(code string) (*Structogram, error) {
 			}
 			while.Block = parseBlock()
 			return while, true
+		} else if seesID("do") {
+			skip()
+			var do DoWhile
+			do.Block = parseBlock()
+			if seesID("while") {
+				skip()
+			} else {
+				err = errors.New("keyword 'while' expected at the end of do-while loop")
+				return nil, false
+			}
+			do.Condition = eatString()
+			return do, true
+		} else if seesID("break") {
+			skip()
+			return Break(eatString()), true
+		} else if seesID("call") {
+			skip()
+			return Call(eatString()), true
+		} else if seesID("parallel") {
+			skip()
+			var p Parallel
+			eat('{')
+			for sees('{') {
+				p = append(p, parseBlock())
+			}
+			eat('}')
+			return p, true
 		}
 		return nil, false
 	}
@@ -168,7 +217,7 @@ func ParseString(code string) (*Structogram, error) {
 }
 
 func escapeString(s string) string {
-	s = s[1 : len(s)-1]
+	s = s[1 : len(s)-1] // Trim '"' at front and back.
 	s = strings.Replace(s, `\n`, "\n", -1)
 	s = strings.Replace(s, `\\`, "\\", -1)
 	s = strings.Replace(s, `\"`, "\"", -1)
