@@ -34,6 +34,12 @@ type SwitchCase struct {
 	Block     Block
 }
 
+type While struct {
+	// Condition can be empty, in that case this is an infinite loop.
+	Condition string
+	Block     Block
+}
+
 func ParseString(code string) (*Structogram, error) {
 	var s Structogram
 
@@ -118,6 +124,14 @@ func ParseString(code string) (*Structogram, error) {
 			}
 			eat('}')
 			return switchStmt, true
+		} else if seesID("while") {
+			skip()
+			var while While
+			if sees(tokenString) {
+				while.Condition = eatString()
+			}
+			while.Block = parseBlock()
+			return while, true
 		}
 		return nil, false
 	}

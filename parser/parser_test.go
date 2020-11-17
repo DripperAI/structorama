@@ -151,3 +151,24 @@ switch "x" {
 		},
 	}})
 }
+
+func TestInfiniteWhileLoopHasNoCondition(t *testing.T) {
+	s, err := ParseString(`while { "do" }`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		While{
+			Block: Block{Instruction("do")},
+		},
+	}})
+}
+
+func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
+	s, err := ParseString(`while "condition" { "do" }`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		While{
+			Condition: "condition",
+			Block:     Block{Instruction("do")},
+		},
+	}})
+}
