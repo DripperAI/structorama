@@ -2,11 +2,11 @@ TODO
 ----
 
 create a language that can handle all cases from https://de.wikipedia.org/wiki/Nassi-Shneiderman-Diagramm ✓ (see below)
-build a parser for the language that outputs an AST
+build a parser for the language that outputs an AST ✓
 build a formatter for the AST
 build a GUI with a text editor and a graphical preview
 	have load/save for files
-	start the program with a default showcase diagram containing all constructs
+	start the program with a default showcase diagram containing all constructs ✓
 	have a help, some way to know the syntax of the language
 	generate PDFs
 have a PDF generator with input AST and output .pdf file
