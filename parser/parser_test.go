@@ -150,13 +150,11 @@ switch "x" {
 	}})
 }
 
-func TestInfiniteWhileLoopHasNoCondition(t *testing.T) {
+func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		While{
-			Block: Block{Instruction("do")},
-		},
+		InfiniteLoop{Instruction("do")},
 	}})
 }
 
@@ -176,8 +174,8 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		DoWhile{
-			Condition: "condition",
 			Block:     Block{Instruction("do")},
+			Condition: "condition",
 		},
 	}})
 }
@@ -186,9 +184,7 @@ func TestLoopsCanHaveBreaks(t *testing.T) {
 	s, err := ParseString(`while { break "destination" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		While{
-			Block: Block{Break("destination")},
-		},
+		InfiniteLoop{Break("destination")},
 	}})
 }
 

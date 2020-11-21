@@ -45,15 +45,16 @@ type Call string
 
 type Parallel []Block
 
+type InfiniteLoop Block
+
 type While struct {
-	// Condition can be empty, in that case this is an infinite loop.
 	Condition string
 	Block     Block
 }
 
 type DoWhile struct {
-	Condition string
 	Block     Block
+	Condition string
 }
 
 type Break string
@@ -148,12 +149,14 @@ func ParseString(code string) (*Structogram, error) {
 			return switchStmt, true
 		} else if seesID("while") {
 			skip()
-			var while While
 			if sees(tokenString) {
-				while.Condition = eatString()
+				return While{
+					Condition: eatString(),
+					Block:     parseBlock(),
+				}, true
+			} else {
+				return InfiniteLoop(parseBlock()), true
 			}
-			while.Block = parseBlock()
-			return while, true
 		} else if seesID("do") {
 			skip()
 			var do DoWhile
