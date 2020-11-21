@@ -5,60 +5,6 @@ import (
 	"strings"
 )
 
-type Structogram struct {
-	Title      string
-	Statements []Statement
-}
-
-type Block []Statement
-
-type Statement interface {
-}
-
-type Instruction string
-
-type If struct {
-	Condition string
-	Then      Block
-}
-
-type IfElse struct {
-	Condition string
-	Then      Block
-	Else      Block
-}
-
-type Switch struct {
-	Subject string
-	Cases   []SwitchCase
-}
-
-type SwitchCase struct {
-	// IsDefault and Condition are exclusive, a switch case is either the
-	// default (case default {...}) or has a Condition (case "condition" {...}).
-	IsDefault bool
-	Condition string
-	Block     Block
-}
-
-type Call string
-
-type Parallel []Block
-
-type InfiniteLoop Block
-
-type While struct {
-	Condition string
-	Block     Block
-}
-
-type DoWhile struct {
-	Block     Block
-	Condition string
-}
-
-type Break string
-
 func ParseString(code string) (*Structogram, error) {
 	var s Structogram
 
