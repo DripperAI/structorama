@@ -13,11 +13,11 @@ func ParseString(code string) (*Structogram, error) {
 		return nil, errors.New("parse error: " + err.Error())
 	}
 
-	position := func() pos {
-		return pos{col: tokens[0].col, line: tokens[0].line}
+	position := func() Pos {
+		return Pos{Col: tokens[0].col, Line: tokens[0].line}
 	}
-	endPosition := func() pos {
-		return pos{col: tokens[1].col, line: tokens[1].line}
+	endPosition := func() Pos {
+		return Pos{Col: tokens[1].col, Line: tokens[1].line}
 	}
 	skipSpace := func() {
 		for len(tokens) > 0 && tokens[0].typ == tokenSpace {
@@ -64,14 +64,18 @@ func ParseString(code string) (*Structogram, error) {
 	parseStatement := func() (Statement, bool) {
 		if sees(tokenString) {
 			var i Instruction
-			i.span.start = position()
-			i.span.end = endPosition()
+			i.start = position()
+			i.end = endPosition()
 			i.quoted = tokens[0].text
 			i.Text = eatString()
 			return i, true
 		} else if seesID("if") {
 			skip()
-			condition := eatString()
+			var condition String
+			condition.start = position()
+			condition.end = endPosition()
+			condition.quoted = tokens[0].text
+			condition.Text = eatString()
 			then := parseBlock()
 			if seesID("else") {
 				skip()
@@ -82,7 +86,7 @@ func ParseString(code string) (*Structogram, error) {
 				}, true
 			}
 			return If{
-				Condition: condition,
+				Condition: condition.Text,
 				Then:      then,
 			}, true
 		} else if seesID("switch") {
@@ -112,7 +116,7 @@ func ParseString(code string) (*Structogram, error) {
 					Block:     parseBlock(),
 				}, true
 			} else {
-				return InfiniteLoop(parseBlock()), true
+				return InfiniteLoop{Block: parseBlock()}, true
 			}
 		} else if seesID("do") {
 			skip()
@@ -128,18 +132,18 @@ func ParseString(code string) (*Structogram, error) {
 			return do, true
 		} else if seesID("break") {
 			var b Break
-			b.span.start = position()
+			b.start = position()
 			skip()
 			b.quoted = tokens[0].text
-			b.span.end = endPosition()
+			b.end = endPosition()
 			b.Text = eatString()
 			return b, true
 		} else if seesID("call") {
 			var c Call
-			c.span.start = position()
+			c.start = position()
 			skip()
 			c.quoted = tokens[0].text
-			c.span.end = endPosition()
+			c.end = endPosition()
 			c.Text = eatString()
 			return c, true
 		} else if seesID("parallel") {
@@ -147,7 +151,7 @@ func ParseString(code string) (*Structogram, error) {
 			var p Parallel
 			eat('{')
 			for sees('{') {
-				p = append(p, parseBlock())
+				p.Blocks = append(p.Blocks, parseBlock())
 			}
 			eat('}')
 			return p, true
@@ -172,10 +176,10 @@ func ParseString(code string) (*Structogram, error) {
 	// Parse optional title.
 	if seesID("title") {
 		skip()
-		s.Title.span.start = position()
+		s.Title.start = position()
 		s.Title.quoted = tokens[0].text
 		s.Title.Text = eatString()
-		s.Title.span.end = position()
+		s.Title.end = position()
 	}
 	// Parse code.
 	s.Statements = parseStatements()

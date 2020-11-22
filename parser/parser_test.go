@@ -51,10 +51,8 @@ func TestTitleComesFirst(t *testing.T) {
 	check.Eq(t, s, &Structogram{Title: String{
 		Text:   "the title",
 		quoted: `"the title"`,
-		span: span{
-			start: pos{col: 7, line: 1},
-			end:   pos{col: 18, line: 1},
-		},
+		start:  Pos{Col: 7, Line: 1},
+		end:    Pos{Col: 18, Line: 1},
 	}})
 }
 
@@ -64,10 +62,8 @@ func TestTitleStringIsEscaped(t *testing.T) {
 	check.Eq(t, s, &Structogram{Title: String{
 		Text:   "quote:\" backslash:\\ line-break:\n",
 		quoted: `"quote:\" backslash:\\ line-break:\n"`,
-		span: span{
-			start: pos{col: 7, line: 1},
-			end:   pos{col: 44, line: 1},
-		},
+		start:  Pos{Col: 7, Line: 1},
+		end:    Pos{Col: 44, Line: 1},
 	}})
 }
 
@@ -78,10 +74,8 @@ func TestRegularInstructionsAreJustStrings(t *testing.T) {
 		Instruction{
 			Text:   "instruction",
 			quoted: `"instruction"`,
-			span: span{
-				start: pos{col: 1, line: 1},
-				end:   pos{col: 14, line: 1},
-			},
+			start:  Pos{Col: 1, Line: 1},
+			end:    Pos{Col: 14, Line: 1},
 		},
 	}})
 }
@@ -101,18 +95,14 @@ if "condition" {
 				Instruction{
 					Text:   "do this",
 					quoted: `"do this"`,
-					span: span{
-						start: pos{col: 2, line: 3},
-						end:   pos{col: 11, line: 3},
-					},
+					start:  Pos{Col: 2, Line: 3},
+					end:    Pos{Col: 11, Line: 3},
 				},
 				Instruction{
 					Text:   "and that",
 					quoted: `"and that"`,
-					span: span{
-						start: pos{col: 2, line: 4},
-						end:   pos{col: 12, line: 4},
-					},
+					start:  Pos{Col: 2, Line: 4},
+					end:    Pos{Col: 12, Line: 4},
 				},
 			},
 		},
@@ -130,25 +120,26 @@ if "false" {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		IfElse{
-			Condition: "false",
+			Condition: String{
+				Text:   "false",
+				quoted: `"false"`,
+				start:  Pos{Col: 4, Line: 2},
+				end:    Pos{Col: 11, Line: 2},
+			},
 			Then: Block{
 				Instruction{
 					Text:   "then this",
 					quoted: `"then this"`,
-					span: span{
-						start: pos{col: 2, line: 3},
-						end:   pos{col: 13, line: 3},
-					},
+					start:  Pos{Col: 2, Line: 3},
+					end:    Pos{Col: 13, Line: 3},
 				},
 			},
 			Else: Block{
 				Instruction{
 					Text:   "else this",
 					quoted: `"else this"`,
-					span: span{
-						start: pos{col: 2, line: 5},
-						end:   pos{col: 13, line: 5},
-					},
+					start:  Pos{Col: 2, Line: 5},
+					end:    Pos{Col: 13, Line: 5},
 				},
 			},
 		},
@@ -181,10 +172,8 @@ switch "x" {
 				{Condition: "2", Block: Block{Instruction{
 					Text:   "two",
 					quoted: `"two"`,
-					span: span{
-						start: pos{col: 13, line: 4},
-						end:   pos{col: 18, line: 4},
-					},
+					start:  Pos{Col: 13, Line: 4},
+					end:    Pos{Col: 18, Line: 4},
 				}}},
 			},
 		},
@@ -214,14 +203,12 @@ func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Instruction{
+		InfiniteLoop{Block: Block{Instruction{
 			Text:   "do",
 			quoted: `"do"`,
-			span: span{
-				start: pos{col: 9, line: 1},
-				end:   pos{col: 13, line: 1},
-			},
-		}},
+			start:  Pos{Col: 9, Line: 1},
+			end:    Pos{Col: 13, Line: 1},
+		}}},
 	}})
 }
 
@@ -234,10 +221,8 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 			Block: Block{Instruction{
 				Text:   "do",
 				quoted: `"do"`,
-				span: span{
-					start: pos{col: 21, line: 1},
-					end:   pos{col: 25, line: 1},
-				},
+				start:  Pos{Col: 21, Line: 1},
+				end:    Pos{Col: 25, Line: 1},
 			}},
 		},
 	}})
@@ -251,10 +236,8 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 			Block: Block{Instruction{
 				Text:   "do",
 				quoted: `"do"`,
-				span: span{
-					start: pos{col: 6, line: 1},
-					end:   pos{col: 10, line: 1},
-				},
+				start:  Pos{Col: 6, Line: 1},
+				end:    Pos{Col: 10, Line: 1},
 			}},
 			Condition: "condition",
 		},
@@ -265,14 +248,12 @@ func TestLoopsCanHaveBreaks(t *testing.T) {
 	s, err := ParseString(`while { break "destination" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Break{
+		InfiniteLoop{Block: Block{Break{
 			Text:   "destination",
 			quoted: `"destination"`,
-			span: span{
-				start: pos{col: 9, line: 1},
-				end:   pos{col: 28, line: 1},
-			},
-		}},
+			start:  Pos{Col: 9, Line: 1},
+			end:    Pos{Col: 28, Line: 1},
+		}}},
 	}})
 }
 
@@ -283,10 +264,8 @@ func TestCallBlockHasOneStringInstruction(t *testing.T) {
 		Call{
 			Text:   "instruction",
 			quoted: `"instruction"`,
-			span: span{
-				start: pos{col: 1, line: 1},
-				end:   pos{col: 19, line: 1},
-			},
+			start:  Pos{Col: 1, Line: 1},
+			end:    Pos{Col: 19, Line: 1},
 		},
 	}})
 }
@@ -307,25 +286,21 @@ parallel {}
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		Parallel{
+		Parallel{Blocks: []Block{
 			Block{Instruction{
 				Text:   "block 1",
 				quoted: `"block 1"`,
-				span: span{
-					start: pos{col: 3, line: 4},
-					end:   pos{col: 12, line: 4},
-				},
+				start:  Pos{Col: 3, Line: 4},
+				end:    Pos{Col: 12, Line: 4},
 			}},
 			Block{},
 			Block{Instruction{
 				Text:   "block 3",
 				quoted: `"block 3"`,
-				span: span{
-					start: pos{col: 3, line: 8},
-					end:   pos{col: 12, line: 8},
-				},
+				start:  Pos{Col: 3, Line: 8},
+				end:    Pos{Col: 12, Line: 8},
 			}},
-		},
+		}},
 		Parallel{},
 	}})
 }

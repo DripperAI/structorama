@@ -92,3 +92,19 @@ func TestOneEmptyLineIsKeptBetweenStatements(t *testing.T) {
 		t.Errorf("have\n---\n%s\n---\nbut want\n---\n%s\n---", code, want)
 	}
 }
+
+func TestIfElseIsFormattedLikeGo(t *testing.T) {
+	code, err := FormatString(`if"true"{"then"}else{"not"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `if "true" {
+	"then"
+} else {
+	"not"
+}
+`
+	if code != want {
+		t.Errorf("have\n---\n%s\n---\nbut want\n---\n%s\n---", code, want)
+	}
+}

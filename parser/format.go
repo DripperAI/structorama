@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
 func FormatString(code string) (string, error) {
@@ -21,6 +22,7 @@ func FormatString(code string) (string, error) {
 type printer struct {
 	bytes.Buffer
 	lastLine int
+	tabs     string
 	err      error
 }
 
@@ -38,7 +40,7 @@ func (p *printer) print(node interface{}) {
 			p.WriteString("title ")
 			p.WriteString(x.Title.quoted)
 			if len(x.Statements) > 0 {
-				p.WriteString("\n")
+				p.WriteString("\n\n")
 			}
 			// We set the lastLine to -2 so that there is always an empty line
 			// between the title and what follows.
@@ -48,31 +50,59 @@ func (p *printer) print(node interface{}) {
 			// statement will start at the very top.
 			p.lastLine = 9999999
 		}
-		for _, stmt := range x.Statements {
+		for i, stmt := range x.Statements {
 			p.print(stmt)
+			if i+1 < len(x.Statements) {
+				a := x.Statements[i]
+				b := x.Statements[i+1]
+				if b.Start().Line-a.End().Line >= 2 {
+					p.WriteString("\n")
+				}
+			}
+			p.newLine()
 		}
 	case Instruction:
-		p.insertEmptyLine(x.span)
 		p.WriteString(x.quoted)
-		p.WriteString("\n")
 	case Call:
-		p.insertEmptyLine(x.span)
 		p.WriteString("call ")
 		p.WriteString(x.quoted)
-		p.WriteString("\n")
 	case Break:
-		p.insertEmptyLine(x.span)
 		p.WriteString("break ")
 		p.WriteString(x.quoted)
-		p.WriteString("\n")
+	case IfElse:
+		p.WriteString("if " + x.Condition.quoted + " {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Then)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("} else {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Else)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
+	case Block:
+		for i, stmt := range x {
+			if i > 0 {
+				p.newLine()
+			}
+			p.print(stmt)
+		}
 	default:
 		p.err = fmt.Errorf("printer.print: unhandled node type %T", node)
 	}
 }
 
-func (p *printer) insertEmptyLine(at span) {
-	if at.start.line-p.lastLine >= 2 {
-		p.WriteString("\n")
-	}
-	p.lastLine = at.end.line
+func (p *printer) indentRight() {
+	p.tabs += "\t"
+}
+
+func (p *printer) indentLeft() {
+	p.tabs = strings.TrimSuffix(p.tabs, "\t")
+}
+
+func (p *printer) newLine() {
+	p.WriteString("\n" + p.tabs)
 }
