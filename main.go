@@ -256,7 +256,7 @@ func paintIn(p painter, node interface{}, width, height int) {
 		area := paintInfiniteLoopLines(p, x, width, height)
 		paintIn(
 			offsetPainter{p: p, dx: area.x, dy: area.y},
-			parser.Block(x),
+			x.Block,
 			area.width,
 			area.height,
 		)
@@ -280,12 +280,12 @@ func paintIn(p painter, node interface{}, width, height int) {
 		)
 
 	case parser.Parallel:
-		sizes := make([]size, len(x))
+		sizes := make([]size, len(x.Blocks))
 		for i := range sizes {
-			sizes[i].width, sizes[i].height = minSize(p, x[i])
+			sizes[i].width, sizes[i].height = minSize(p, x.Blocks[i])
 		}
 		areas := paintParallel(p, sizes, width, height)
-		for i, block := range x {
+		for i, block := range x.Blocks {
 			paintIn(
 				offsetPainter{p: p, dx: areas[i].x, dy: areas[i].y},
 				block,
@@ -297,7 +297,7 @@ func paintIn(p painter, node interface{}, width, height int) {
 	case parser.If:
 		// An If is the same as an IfElse with an empty Else.
 		paintIn(p, parser.IfElse{
-			Condition: x.Condition,
+			Condition: parser.String{Text: x.Condition},
 			Then:      x.Then,
 		}, width, height)
 
@@ -343,7 +343,7 @@ func minSize(p painter, node interface{}) (width, height int) {
 		return minSizeBlock(margin, sizes)
 
 	case parser.InfiniteLoop:
-		blockW, blockH := minSize(p, parser.Block(x))
+		blockW, blockH := minSize(p, x.Block)
 		return minSizeInfiniteLoop(margin, blockW, blockH)
 
 	case parser.While:
@@ -360,16 +360,16 @@ func minSize(p painter, node interface{}) (width, height int) {
 		})
 
 	case parser.Parallel:
-		sizes := make([]size, len(x))
+		sizes := make([]size, len(x.Blocks))
 		for i := range sizes {
-			sizes[i].width, sizes[i].height = minSize(p, x[i])
+			sizes[i].width, sizes[i].height = minSize(p, x.Blocks[i])
 		}
 		return minSizeParallel(margin, sizes)
 
 	case parser.If:
 		// An If is the same as an IfElse with an empty Else.
 		return minSize(p, parser.IfElse{
-			Condition: x.Condition,
+			Condition: parser.String{Text: x.Condition},
 			Then:      x.Then,
 		})
 
