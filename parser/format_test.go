@@ -108,3 +108,55 @@ func TestIfElseIsFormattedLikeGo(t *testing.T) {
 		t.Errorf("have\n---\n%s\n---\nbut want\n---\n%s\n---", code, want)
 	}
 }
+
+func TestIfElseCanBeNested(t *testing.T) {
+	code, err := FormatString(`if"true"{if"false"{}else{}}else{"not"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `if "true" {
+	if "false" {
+		
+	} else {
+		
+	}
+} else {
+	"not"
+}
+`
+	if code != want {
+		t.Errorf("have\n---\n%s\n---\nbut want\n---\n%s\n---", code, want)
+	}
+}
+
+func TestFormattedIfElseMayHaveEmptyLinesAroundIt(t *testing.T) {
+	code, err := FormatString(`if""{}else{}
+
+if""{}else{}
+
+if""{}else{}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `if "" {
+	
+} else {
+	
+}
+
+if "" {
+	
+} else {
+	
+}
+
+if "" {
+	
+} else {
+	
+}
+`
+	if code != want {
+		t.Errorf("have\n---\n%s\n---\nbut want\n---\n%s\n---", code, want)
+	}
+}

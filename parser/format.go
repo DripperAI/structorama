@@ -76,7 +76,7 @@ func (p *printer) print(node interface{}) {
 		p.newLine()
 		p.WriteString("}")
 	case Block:
-		for i, stmt := range x {
+		for i, stmt := range x.Statements {
 			if i > 0 {
 				p.newLine()
 			}

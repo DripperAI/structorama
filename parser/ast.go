@@ -54,7 +54,14 @@ type Call struct {
 func (c Call) Start() Pos { return c.start }
 func (c Call) End() Pos   { return c.end }
 
-type Block []Statement
+type Block struct {
+	Statements []Statement
+	start      Pos
+	end        Pos
+}
+
+func (b Block) Start() Pos { return b.start }
+func (b Block) End() Pos   { return b.end }
 
 type If struct {
 	Condition string
@@ -68,10 +75,11 @@ type IfElse struct {
 	Condition String
 	Then      Block
 	Else      Block
+	start     Pos
 }
 
-func (IfElse) Start() Pos { return Pos{} } // TODO
-func (IfElse) End() Pos   { return Pos{} } // TODO
+func (i IfElse) Start() Pos { return i.start }
+func (i IfElse) End() Pos   { return i.Else.End() }
 
 type Switch struct {
 	Subject string

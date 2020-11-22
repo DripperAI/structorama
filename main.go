@@ -208,7 +208,7 @@ func paintStructogram(p painter, x *parser.Structogram) {
 		_, h := p.TextSize(x.Title.Text)
 		p = offsetPainter{p: p, dy: h + 5}
 	}
-	body := parser.Block(x.Statements)
+	body := parser.Block{Statements: x.Statements}
 	width, height := minSize(p, body)
 	p.Rect(-1, -1, width+2, height+2)
 	paintIn(p, body, width, height)
@@ -234,19 +234,19 @@ func paintIn(p painter, node interface{}, width, height int) {
 		p.Text(height/4+1+margin/2, margin/2, x.Text)
 
 	case parser.Block:
-		sizes := make([]size, len(x))
+		sizes := make([]size, len(x.Statements))
 		for i := range sizes {
-			sizes[i].width, sizes[i].height = minSize(p, x[i])
+			sizes[i].width, sizes[i].height = minSize(p, x.Statements[i])
 		}
 		areas := blockPaintAreas(width, height, sizes)
-		for i := range x {
+		for i := range x.Statements {
 			if i > 0 {
 				y := areas[i].y - 1
 				p.Line(0, y, width-1, y)
 			}
 			paintIn(
 				offsetPainter{p: p, dx: areas[i].x, dy: areas[i].y},
-				x[i],
+				x.Statements[i],
 				areas[i].width,
 				areas[i].height,
 			)
@@ -336,9 +336,9 @@ func minSize(p painter, node interface{}) (width, height int) {
 		return width, height
 
 	case parser.Block:
-		sizes := make([]size, len(x))
+		sizes := make([]size, len(x.Statements))
 		for i := range sizes {
-			sizes[i].width, sizes[i].height = minSize(p, x[i])
+			sizes[i].width, sizes[i].height = minSize(p, x.Statements[i])
 		}
 		return minSizeBlock(margin, sizes)
 

@@ -55,10 +55,13 @@ func ParseString(code string) (*Structogram, error) {
 	var parseStatements func() []Statement
 
 	parseBlock := func() Block {
+		var b Block
+		b.start = position()
 		eat('{')
-		s := parseStatements()
+		b.Statements = parseStatements()
+		b.end = endPosition()
 		eat('}')
-		return Block(s)
+		return b
 	}
 
 	parseStatement := func() (Statement, bool) {
@@ -70,6 +73,7 @@ func ParseString(code string) (*Structogram, error) {
 			i.Text = eatString()
 			return i, true
 		} else if seesID("if") {
+			ifStart := position()
 			skip()
 			var condition String
 			condition.start = position()
@@ -80,12 +84,14 @@ func ParseString(code string) (*Structogram, error) {
 			if seesID("else") {
 				skip()
 				return IfElse{
+					start:     ifStart,
 					Condition: condition,
 					Then:      then,
 					Else:      parseBlock(),
 				}, true
 			}
 			return If{
+				//start:     ifStart, // TODO
 				Condition: condition.Text,
 				Then:      then,
 			}, true

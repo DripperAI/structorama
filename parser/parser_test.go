@@ -92,17 +92,21 @@ if "condition" {
 		If{
 			Condition: "condition",
 			Then: Block{
-				Instruction{
-					Text:   "do this",
-					quoted: `"do this"`,
-					start:  Pos{Col: 2, Line: 3},
-					end:    Pos{Col: 11, Line: 3},
-				},
-				Instruction{
-					Text:   "and that",
-					quoted: `"and that"`,
-					start:  Pos{Col: 2, Line: 4},
-					end:    Pos{Col: 12, Line: 4},
+				start: Pos{Col: 16, Line: 2},
+				end:   Pos{Col: 2, Line: 5},
+				Statements: []Statement{
+					Instruction{
+						Text:   "do this",
+						quoted: `"do this"`,
+						start:  Pos{Col: 2, Line: 3},
+						end:    Pos{Col: 11, Line: 3},
+					},
+					Instruction{
+						Text:   "and that",
+						quoted: `"and that"`,
+						start:  Pos{Col: 2, Line: 4},
+						end:    Pos{Col: 12, Line: 4},
+					},
 				},
 			},
 		},
@@ -120,6 +124,7 @@ if "false" {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		IfElse{
+			start: Pos{Col: 1, Line: 2},
 			Condition: String{
 				Text:   "false",
 				quoted: `"false"`,
@@ -127,23 +132,32 @@ if "false" {
 				end:    Pos{Col: 11, Line: 2},
 			},
 			Then: Block{
-				Instruction{
-					Text:   "then this",
-					quoted: `"then this"`,
-					start:  Pos{Col: 2, Line: 3},
-					end:    Pos{Col: 13, Line: 3},
+				start: Pos{Col: 12, Line: 2},
+				end:   Pos{Col: 2, Line: 4},
+				Statements: []Statement{
+					Instruction{
+						Text:   "then this",
+						quoted: `"then this"`,
+						start:  Pos{Col: 2, Line: 3},
+						end:    Pos{Col: 13, Line: 3},
+					},
 				},
 			},
 			Else: Block{
-				Instruction{
-					Text:   "else this",
-					quoted: `"else this"`,
-					start:  Pos{Col: 2, Line: 5},
-					end:    Pos{Col: 13, Line: 5},
+				start: Pos{Col: 8, Line: 4},
+				end:   Pos{Col: 2, Line: 6},
+				Statements: []Statement{
+					Instruction{
+						Text:   "else this",
+						quoted: `"else this"`,
+						start:  Pos{Col: 2, Line: 5},
+						end:    Pos{Col: 13, Line: 5},
+					},
 				},
 			},
 		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 2, Line: 6})
 }
 
 func TestSwitchCanBeEmpty(t *testing.T) {
@@ -168,13 +182,28 @@ switch "x" {
 		Switch{
 			Subject: "x",
 			Cases: []SwitchCase{
-				{Condition: "1"},
-				{Condition: "2", Block: Block{Instruction{
-					Text:   "two",
-					quoted: `"two"`,
-					start:  Pos{Col: 13, Line: 4},
-					end:    Pos{Col: 18, Line: 4},
-				}}},
+				{
+					Condition: "1",
+					Block: Block{
+						start: Pos{Col: 11, Line: 3},
+						end:   Pos{Col: 13, Line: 3},
+					},
+				},
+				{
+					Condition: "2",
+					Block: Block{
+						start: Pos{Col: 11, Line: 4},
+						end:   Pos{Col: 20, Line: 4},
+						Statements: []Statement{
+							Instruction{
+								Text:   "two",
+								quoted: `"two"`,
+								start:  Pos{Col: 13, Line: 4},
+								end:    Pos{Col: 18, Line: 4},
+							},
+						},
+					},
+				},
 			},
 		},
 	}})
@@ -192,8 +221,20 @@ switch "x" {
 		Switch{
 			Subject: "x",
 			Cases: []SwitchCase{
-				{Condition: "1"},
-				{IsDefault: true},
+				{
+					Condition: "1",
+					Block: Block{
+						start: Pos{Col: 11, Line: 3},
+						end:   Pos{Col: 13, Line: 3},
+					},
+				},
+				{
+					IsDefault: true,
+					Block: Block{
+						start: Pos{Col: 15, Line: 4},
+						end:   Pos{Col: 17, Line: 4},
+					},
+				},
 			},
 		},
 	}})
@@ -203,12 +244,18 @@ func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Block: Block{Instruction{
-			Text:   "do",
-			quoted: `"do"`,
-			start:  Pos{Col: 9, Line: 1},
-			end:    Pos{Col: 13, Line: 1},
-		}}},
+		InfiniteLoop{Block: Block{
+			start: Pos{Col: 7, Line: 1},
+			end:   Pos{Col: 15, Line: 1},
+			Statements: []Statement{
+				Instruction{
+					Text:   "do",
+					quoted: `"do"`,
+					start:  Pos{Col: 9, Line: 1},
+					end:    Pos{Col: 13, Line: 1},
+				},
+			},
+		}},
 	}})
 }
 
@@ -218,12 +265,18 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		While{
 			Condition: "condition",
-			Block: Block{Instruction{
-				Text:   "do",
-				quoted: `"do"`,
-				start:  Pos{Col: 21, Line: 1},
-				end:    Pos{Col: 25, Line: 1},
-			}},
+			Block: Block{
+				start: Pos{Col: 19, Line: 1},
+				end:   Pos{Col: 27, Line: 1},
+				Statements: []Statement{
+					Instruction{
+						Text:   "do",
+						quoted: `"do"`,
+						start:  Pos{Col: 21, Line: 1},
+						end:    Pos{Col: 25, Line: 1},
+					},
+				},
+			},
 		},
 	}})
 }
@@ -233,12 +286,18 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		DoWhile{
-			Block: Block{Instruction{
-				Text:   "do",
-				quoted: `"do"`,
-				start:  Pos{Col: 6, Line: 1},
-				end:    Pos{Col: 10, Line: 1},
-			}},
+			Block: Block{
+				start: Pos{Col: 4, Line: 1},
+				end:   Pos{Col: 12, Line: 1},
+				Statements: []Statement{
+					Instruction{
+						Text:   "do",
+						quoted: `"do"`,
+						start:  Pos{Col: 6, Line: 1},
+						end:    Pos{Col: 10, Line: 1},
+					},
+				},
+			},
 			Condition: "condition",
 		},
 	}})
@@ -248,12 +307,18 @@ func TestLoopsCanHaveBreaks(t *testing.T) {
 	s, err := ParseString(`while { break "destination" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Block: Block{Break{
-			Text:   "destination",
-			quoted: `"destination"`,
-			start:  Pos{Col: 9, Line: 1},
-			end:    Pos{Col: 28, Line: 1},
-		}}},
+		InfiniteLoop{Block: Block{
+			start: Pos{Col: 7, Line: 1},
+			end:   Pos{Col: 30, Line: 1},
+			Statements: []Statement{
+				Break{
+					Text:   "destination",
+					quoted: `"destination"`,
+					start:  Pos{Col: 9, Line: 1},
+					end:    Pos{Col: 28, Line: 1},
+				},
+			},
+		}},
 	}})
 }
 
@@ -287,19 +352,34 @@ parallel {}
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		Parallel{Blocks: []Block{
-			Block{Instruction{
-				Text:   "block 1",
-				quoted: `"block 1"`,
-				start:  Pos{Col: 3, Line: 4},
-				end:    Pos{Col: 12, Line: 4},
-			}},
-			Block{},
-			Block{Instruction{
-				Text:   "block 3",
-				quoted: `"block 3"`,
-				start:  Pos{Col: 3, Line: 8},
-				end:    Pos{Col: 12, Line: 8},
-			}},
+			Block{
+				start: Pos{Col: 2, Line: 3},
+				end:   Pos{Col: 3, Line: 5},
+				Statements: []Statement{
+					Instruction{
+						Text:   "block 1",
+						quoted: `"block 1"`,
+						start:  Pos{Col: 3, Line: 4},
+						end:    Pos{Col: 12, Line: 4},
+					},
+				},
+			},
+			Block{
+				start: Pos{Col: 2, Line: 6},
+				end:   Pos{Col: 4, Line: 6},
+			},
+			Block{
+				start: Pos{Col: 2, Line: 7},
+				end:   Pos{Col: 3, Line: 9},
+				Statements: []Statement{
+					Instruction{
+						Text:   "block 3",
+						quoted: `"block 3"`,
+						start:  Pos{Col: 3, Line: 8},
+						end:    Pos{Col: 12, Line: 8},
+					},
+				},
+			},
 		}},
 		Parallel{},
 	}})
