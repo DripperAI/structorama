@@ -21,9 +21,8 @@ func FormatString(code string) (string, error) {
 
 type printer struct {
 	bytes.Buffer
-	lastLine int
-	tabs     string
-	err      error
+	tabs string
+	err  error
 }
 
 func (p *printer) String() string {
@@ -42,13 +41,6 @@ func (p *printer) print(node interface{}) {
 			if len(x.Statements) > 0 {
 				p.WriteString("\n\n")
 			}
-			// We set the lastLine to -2 so that there is always an empty line
-			// between the title and what follows.
-			p.lastLine = -2
-		} else {
-			// Set the lastLine to infinity (kind of) to make sure the first
-			// statement will start at the very top.
-			p.lastLine = 9999999
 		}
 		for i, stmt := range x.Statements {
 			p.print(stmt)
