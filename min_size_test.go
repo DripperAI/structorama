@@ -19,12 +19,12 @@ func TestInstructionHasTextSizePlusMargins(t *testing.T) {
 	// thus line height by line height in size.
 	checkMinSize(t,
 		&mockPainter{lineHeight: 10},
-		parser.Instruction(""),
+		parser.Instruction{Text: ""},
 		5+5, 5+5,
 	)
 	checkMinSize(t,
 		&mockPainter{lineHeight: 10, textW: 100, textH: 20},
-		parser.Instruction("100x20 text"),
+		parser.Instruction{Text: "100x20 text"},
 		5+100+5, 5+20+5,
 	)
 }
@@ -49,12 +49,12 @@ func TestCallHasVerticalBarsAroundText(t *testing.T) {
 	// height wide.
 	checkMinSize(t,
 		&mockPainter{lineHeight: 10},
-		parser.Call(""),
+		parser.Call{Text: ""},
 		5+1+10+1+5, 10,
 	)
 	checkMinSize(t,
 		&mockPainter{lineHeight: 10, textW: 50, textH: 15},
-		parser.Call("call"),
+		parser.Call{Text: "call"},
 		5+1+5+50+5+1+5, 5+15+5,
 	)
 }
@@ -75,14 +75,14 @@ func TestBreakHasFourthOfHeightWideArrowOnTheLeft(t *testing.T) {
 	// instructions, the left margin starts where the arrow ends.
 	checkMinSize(t,
 		&mockPainter{lineHeight: 16},
-		parser.Break(""),
+		parser.Break{Text: ""},
 		// Box height is 16=2*half line height, this means box width is 16/4=4
 		// for the arrow plus the text margin, again 2*half line height.
 		4+1+8+8, 8+8,
 	)
 	checkMinSize(t,
 		&mockPainter{lineHeight: 16, textW: 40, textH: 20},
-		parser.Break("break"),
+		parser.Break{Text: "break"},
 		// Box height is 8+20+8=36 so the arrow is 36/4=9 wide.
 		9+1+8+40+8, 8+20+8,
 	)

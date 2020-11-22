@@ -1,17 +1,32 @@
 package parser
 
 type Structogram struct {
-	Title      string
+	Title      String
 	Statements []Statement
+}
+
+type String struct {
+	Text   string
+	quoted string
+	span   span
+}
+
+type span struct {
+	start pos
+	end   pos
+}
+
+type pos struct {
+	col, line int
 }
 
 type Statement interface{}
 
-type Instruction string
+type Instruction String
 
-type Break string
+type Break String
 
-type Call string
+type Call String
 
 type Block []Statement
 

@@ -25,6 +25,7 @@ func TestTokenization(t *testing.T) {
 	tok(token{typ: tokenString, text: `"\n\\\""`, col: 15, line: 1})
 	tok(token{typ: tokenSpace, text: "\n\t", col: 23, line: 1})
 	tok(token{typ: tokenID, text: "NextLine", col: 2, line: 2})
+	tok(token{typ: tokenEOF, text: "", col: 10, line: 2})
 
 	check.Eq(t, len(tokens), 0) // All tokens checked off the list.
 }
@@ -32,7 +33,10 @@ func TestTokenization(t *testing.T) {
 func TestTokenizingEscapeSequences(t *testing.T) {
 	tokens, err := tokenize(`"quote:\" backslash:\\ line-break:\n"`)
 	check.Eq(t, err, nil)
-	check.Eq(t, len(tokens), 1)
+	check.Eq(t, len(tokens), 2)
+	check.Eq(t, tokens[0].typ, tokenString)
+	check.Eq(t, tokens[0].text, `"quote:\" backslash:\\ line-break:\n"`)
+	check.Eq(t, tokens[1].typ, tokenEOF)
 }
 
 func TestEmptyStringYieldsEmptyStructogram(t *testing.T) {
@@ -44,20 +48,41 @@ func TestEmptyStringYieldsEmptyStructogram(t *testing.T) {
 func TestTitleComesFirst(t *testing.T) {
 	s, err := ParseString(`title "the title"`)
 	check.Eq(t, err, nil)
-	check.Eq(t, s, &Structogram{Title: "the title"})
+	check.Eq(t, s, &Structogram{Title: String{
+		Text:   "the title",
+		quoted: `"the title"`,
+		span: span{
+			start: pos{col: 7, line: 1},
+			end:   pos{col: 18, line: 1},
+		},
+	}})
 }
 
 func TestTitleStringIsEscaped(t *testing.T) {
 	s, err := ParseString(`title "quote:\" backslash:\\ line-break:\n"`)
 	check.Eq(t, err, nil)
-	check.Eq(t, s, &Structogram{Title: "quote:\" backslash:\\ line-break:\n"})
+	check.Eq(t, s, &Structogram{Title: String{
+		Text:   "quote:\" backslash:\\ line-break:\n",
+		quoted: `"quote:\" backslash:\\ line-break:\n"`,
+		span: span{
+			start: pos{col: 7, line: 1},
+			end:   pos{col: 44, line: 1},
+		},
+	}})
 }
 
 func TestRegularInstructionsAreJustStrings(t *testing.T) {
 	s, err := ParseString(`"instruction"`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		Instruction("instruction"),
+		Instruction{
+			Text:   "instruction",
+			quoted: `"instruction"`,
+			span: span{
+				start: pos{col: 1, line: 1},
+				end:   pos{col: 14, line: 1},
+			},
+		},
 	}})
 }
 
@@ -73,8 +98,22 @@ if "condition" {
 		If{
 			Condition: "condition",
 			Then: Block{
-				Instruction("do this"),
-				Instruction("and that"),
+				Instruction{
+					Text:   "do this",
+					quoted: `"do this"`,
+					span: span{
+						start: pos{col: 2, line: 3},
+						end:   pos{col: 11, line: 3},
+					},
+				},
+				Instruction{
+					Text:   "and that",
+					quoted: `"and that"`,
+					span: span{
+						start: pos{col: 2, line: 4},
+						end:   pos{col: 12, line: 4},
+					},
+				},
 			},
 		},
 	}})
@@ -93,10 +132,24 @@ if "false" {
 		IfElse{
 			Condition: "false",
 			Then: Block{
-				Instruction("then this"),
+				Instruction{
+					Text:   "then this",
+					quoted: `"then this"`,
+					span: span{
+						start: pos{col: 2, line: 3},
+						end:   pos{col: 13, line: 3},
+					},
+				},
 			},
 			Else: Block{
-				Instruction("else this"),
+				Instruction{
+					Text:   "else this",
+					quoted: `"else this"`,
+					span: span{
+						start: pos{col: 2, line: 5},
+						end:   pos{col: 13, line: 5},
+					},
+				},
 			},
 		},
 	}})
@@ -125,7 +178,14 @@ switch "x" {
 			Subject: "x",
 			Cases: []SwitchCase{
 				{Condition: "1"},
-				{Condition: "2", Block: Block{Instruction("two")}},
+				{Condition: "2", Block: Block{Instruction{
+					Text:   "two",
+					quoted: `"two"`,
+					span: span{
+						start: pos{col: 13, line: 4},
+						end:   pos{col: 18, line: 4},
+					},
+				}}},
 			},
 		},
 	}})
@@ -154,7 +214,14 @@ func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Instruction("do")},
+		InfiniteLoop{Instruction{
+			Text:   "do",
+			quoted: `"do"`,
+			span: span{
+				start: pos{col: 9, line: 1},
+				end:   pos{col: 13, line: 1},
+			},
+		}},
 	}})
 }
 
@@ -164,7 +231,14 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		While{
 			Condition: "condition",
-			Block:     Block{Instruction("do")},
+			Block: Block{Instruction{
+				Text:   "do",
+				quoted: `"do"`,
+				span: span{
+					start: pos{col: 21, line: 1},
+					end:   pos{col: 25, line: 1},
+				},
+			}},
 		},
 	}})
 }
@@ -174,7 +248,14 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		DoWhile{
-			Block:     Block{Instruction("do")},
+			Block: Block{Instruction{
+				Text:   "do",
+				quoted: `"do"`,
+				span: span{
+					start: pos{col: 6, line: 1},
+					end:   pos{col: 10, line: 1},
+				},
+			}},
 			Condition: "condition",
 		},
 	}})
@@ -184,7 +265,14 @@ func TestLoopsCanHaveBreaks(t *testing.T) {
 	s, err := ParseString(`while { break "destination" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Break("destination")},
+		InfiniteLoop{Break{
+			Text:   "destination",
+			quoted: `"destination"`,
+			span: span{
+				start: pos{col: 9, line: 1},
+				end:   pos{col: 28, line: 1},
+			},
+		}},
 	}})
 }
 
@@ -192,7 +280,14 @@ func TestCallBlockHasOneStringInstruction(t *testing.T) {
 	s, err := ParseString(`call "instruction"`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		Call("instruction"),
+		Call{
+			Text:   "instruction",
+			quoted: `"instruction"`,
+			span: span{
+				start: pos{col: 1, line: 1},
+				end:   pos{col: 19, line: 1},
+			},
+		},
 	}})
 }
 
@@ -213,9 +308,23 @@ parallel {}
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		Parallel{
-			Block{Instruction("block 1")},
+			Block{Instruction{
+				Text:   "block 1",
+				quoted: `"block 1"`,
+				span: span{
+					start: pos{col: 3, line: 4},
+					end:   pos{col: 12, line: 4},
+				},
+			}},
 			Block{},
-			Block{Instruction("block 3")},
+			Block{Instruction{
+				Text:   "block 3",
+				quoted: `"block 3"`,
+				span: span{
+					start: pos{col: 3, line: 8},
+					end:   pos{col: 12, line: 8},
+				},
+			}},
 		},
 		Parallel{},
 	}})

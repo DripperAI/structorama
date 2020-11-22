@@ -115,8 +115,18 @@ parallel {
 		}
 	})
 
+	formatCode := func() {
+		code, err := parser.FormatString(codeEditor.Text())
+		if err == nil {
+			codeEditor.SetText(strings.Replace(code, "\n", "\r\n", -1))
+		} else {
+			wui.MessageBoxError("Formatting Error", err.Error())
+		}
+	}
+
 	codeEditor.SetOnTextChange(preview.Paint)
 
+	window.SetShortcut(formatCode, wui.KeyControl, wui.KeyF)
 	window.SetShortcut(window.Close, wui.KeyEscape)
 
 	window.Show()
@@ -193,9 +203,9 @@ func (p offsetPainter) LineHeight() int {
 }
 
 func paintStructogram(p painter, x *parser.Structogram) {
-	if x.Title != "" {
-		p.Text(0, 0, x.Title)
-		_, h := p.TextSize(x.Title)
+	if x.Title.Text != "" {
+		p.Text(0, 0, x.Title.Text)
+		_, h := p.TextSize(x.Title.Text)
 		p = offsetPainter{p: p, dy: h + 5}
 	}
 	body := parser.Block(x.Statements)
@@ -209,19 +219,19 @@ func paintIn(p painter, node interface{}, width, height int) {
 	switch x := node.(type) {
 
 	case parser.Instruction:
-		p.Text(margin/2, margin/2, string(x))
+		p.Text(margin/2, margin/2, x.Text)
 
 	case parser.Call:
 		left := margin / 2
 		right := width - 1 - left
 		p.Line(left, 0, left, height-1)
 		p.Line(right, 0, right, height-1)
-		p.Text(left+1+margin/2, margin/2, string(x))
+		p.Text(left+1+margin/2, margin/2, x.Text)
 
 	case parser.Break:
 		p.Line(0, (height-1)/2, height/4, 0)
 		p.Line(0, height/2, height/4, height-1)
-		p.Text(height/4+1+margin/2, margin/2, string(x))
+		p.Text(height/4+1+margin/2, margin/2, x.Text)
 
 	case parser.Block:
 		sizes := make([]size, len(x))
@@ -312,15 +322,15 @@ func minSize(p painter, node interface{}) (width, height int) {
 	switch x := node.(type) {
 
 	case parser.Instruction:
-		textW, textH := p.TextSize(string(x))
+		textW, textH := p.TextSize(x.Text)
 		return textW + margin, textH + margin
 
 	case parser.Call:
-		textW, textH := p.TextSize(string(x))
+		textW, textH := p.TextSize(x.Text)
 		return 2*margin + 2 + textW, textH + margin
 
 	case parser.Break:
-		textW, textH := p.TextSize(string(x))
+		textW, textH := p.TextSize(x.Text)
 		height := margin + textH
 		width := height/4 + 1 + textW + margin
 		return width, height

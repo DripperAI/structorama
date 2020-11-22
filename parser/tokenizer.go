@@ -102,6 +102,8 @@ func tokenize(code string) ([]token, error) {
 		}
 	}
 
+	emit(tokenEOF)
+
 	return tokens, err
 }
 
@@ -118,6 +120,7 @@ const (
 	tokenID = iota
 	tokenString
 	tokenSpace
+	tokenEOF
 )
 
 func (t tokenType) String() string {

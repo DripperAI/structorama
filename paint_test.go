@@ -14,7 +14,7 @@ func TestPaintInstruction(t *testing.T) {
 	// 	|  Instruction  |
 	// 	|_______________|
 	p := &mockPainter{lineHeight: 10}
-	paintIn(p, parser.Instruction("instruction"), 0, 0)
+	paintIn(p, parser.Instruction{Text: "instruction"}, 0, 0)
 	p.checkPainting(t, `Text(5, 5, "instruction")`)
 }
 
@@ -24,7 +24,7 @@ func TestPaintCall(t *testing.T) {
 	// 	| | Call | |
 	// 	|_|______|_|
 	p := &mockPainter{lineHeight: 10}
-	paintIn(p, parser.Call("call"), 100, 50)
+	paintIn(p, parser.Call{Text: "call"}, 100, 50)
 	p.checkPainting(t,
 		`Line(5, 0, 5, 49)`,
 		`Line(94, 0, 94, 49)`,
@@ -58,7 +58,7 @@ func TestPaintBreak(t *testing.T) {
 	// 	.x........
 	// 	..x.......
 	p := &mockPainter{lineHeight: 10}
-	paintIn(p, parser.Break("break"), 100, 40)
+	paintIn(p, parser.Break{Text: "break"}, 100, 40)
 	p.checkPainting(t,
 		`Line(0, 19, 10, 0)`,
 		`Line(0, 20, 10, 39)`,
@@ -66,7 +66,7 @@ func TestPaintBreak(t *testing.T) {
 	)
 
 	p = &mockPainter{lineHeight: 10}
-	paintIn(p, parser.Break("break"), 100, 41)
+	paintIn(p, parser.Break{Text: "break"}, 100, 41)
 	p.checkPainting(t,
 		`Line(0, 20, 10, 0)`,
 		`Line(0, 20, 10, 40)`,
