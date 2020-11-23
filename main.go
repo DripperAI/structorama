@@ -297,7 +297,7 @@ func paintIn(p painter, node interface{}, width, height int) {
 	case parser.If:
 		// An If is the same as an IfElse with an empty Else.
 		paintIn(p, parser.IfElse{
-			Condition: parser.String{Text: x.Condition},
+			Condition: x.Condition,
 			Then:      x.Then,
 		}, width, height)
 
@@ -369,7 +369,7 @@ func minSize(p painter, node interface{}) (width, height int) {
 	case parser.If:
 		// An If is the same as an IfElse with an empty Else.
 		return minSize(p, parser.IfElse{
-			Condition: parser.String{Text: x.Condition},
+			Condition: x.Condition,
 			Then:      x.Then,
 		})
 

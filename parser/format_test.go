@@ -129,6 +129,26 @@ if "" {
 }
 `)
 }
+func TestIfIsFormattedLikeGo(t *testing.T) {
+	checkFormatting(t,
+		`if"a"{"do a"}  if"b"{"do b"}
+
+
+
+if"c"{"do c"}`,
+
+		`if "a" {
+	"do a"
+}
+if "b" {
+	"do b"
+}
+
+if "c" {
+	"do c"
+}
+`)
+}
 
 func checkFormatting(t *testing.T, original, want string) {
 	have, err := FormatString(original)

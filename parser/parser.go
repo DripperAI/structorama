@@ -91,8 +91,8 @@ func ParseString(code string) (*Structogram, error) {
 				}, true
 			}
 			return If{
-				//start:     ifStart, // TODO
-				Condition: condition.Text,
+				start:     ifStart,
+				Condition: condition,
 				Then:      then,
 			}, true
 		} else if seesID("switch") {

@@ -64,12 +64,13 @@ func (b Block) Start() Pos { return b.start }
 func (b Block) End() Pos   { return b.end }
 
 type If struct {
-	Condition string
+	Condition String
 	Then      Block
+	start     Pos
 }
 
-func (If) Start() Pos { return Pos{} } // TODO
-func (If) End() Pos   { return Pos{} } // TODO
+func (i If) Start() Pos { return i.start }
+func (i If) End() Pos   { return i.Then.End() }
 
 type IfElse struct {
 	Condition String

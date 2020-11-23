@@ -61,6 +61,14 @@ func (p *printer) print(node interface{}) {
 	case Break:
 		p.WriteString("break ")
 		p.WriteString(x.quoted)
+	case If:
+		p.WriteString("if " + x.Condition.quoted + " {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Then)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
 	case IfElse:
 		p.WriteString("if " + x.Condition.quoted + " {")
 		p.indentRight()

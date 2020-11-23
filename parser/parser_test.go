@@ -90,7 +90,13 @@ if "condition" {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		If{
-			Condition: "condition",
+			start: Pos{Col: 1, Line: 2},
+			Condition: String{
+				Text:   "condition",
+				quoted: `"condition"`,
+				start:  Pos{Col: 4, Line: 2},
+				end:    Pos{Col: 15, Line: 2},
+			},
 			Then: Block{
 				start: Pos{Col: 16, Line: 2},
 				end:   Pos{Col: 2, Line: 5},
@@ -111,6 +117,7 @@ if "condition" {
 			},
 		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 2, Line: 5})
 }
 
 func TestIfElseHasBoth(t *testing.T) {
