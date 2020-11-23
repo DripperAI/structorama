@@ -1,9 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+	"os/exec"
 	"strings"
 
+	"github.com/jung-kurt/gofpdf"
+
+	"github.com/gonutz/gofont"
 	"github.com/gonutz/wui"
 
 	"github.com/gonutz/structorama/parser"
@@ -124,9 +132,55 @@ parallel {
 		}
 	}
 
+	exportPDF := func() {
+		// Unfortunately implementing a pdfPainter using the gofpdf library
+		// proved to be difficult. Instead we now just create a pixel-based
+		// image, draw to it and render that into the PDF instead.
+
+		fontPath := "C:/Windows/Fonts/" + previewFont.Desc.Name + ".ttf"
+		font, err := gofont.LoadFromFile(fontPath)
+		if err != nil {
+			wui.MessageBoxError("Cannot load font", err.Error())
+			return
+		}
+		font.PixelHeight = 20
+
+		// DIN A4 pages are 210 x 297 mm in size,we keep our image at the same
+		// aspect ratio.
+		img := image.NewRGBA(image.Rect(0, 0, 3*210, 3*297))
+		paintStructogram(
+			offsetPainter{p: imagePainter{img: img, font: font}, dx: 10, dy: 10},
+			lastValidStructogram,
+		)
+
+		pdf := gofpdf.New("P", "mm", "A4", "")
+		pdf.AddPage()
+		var buf bytes.Buffer
+		png.Encode(&buf, img)
+		pdf.RegisterImageOptionsReader(
+			"diagram.png",
+			gofpdf.ImageOptions{ImageType: "PNG"},
+			bytes.NewReader(buf.Bytes()),
+		)
+		pdf.Image("diagram.png", 0, 0, 0, 0, false, "", 0, "")
+
+		dlg := wui.NewFileSaveDialog()
+		dlg.SetTitle("Select output path")
+		dlg.AddFilter("PDF File", ".pdf")
+		if ok, path := dlg.Execute(window); ok {
+			err := pdf.OutputFileAndClose(path)
+			if err != nil {
+				wui.MessageBoxError("Error exporting PDF", err.Error())
+			} else {
+				exec.Command("cmd", "/C", path).Start()
+			}
+		}
+	}
+
 	codeEditor.SetOnTextChange(preview.Paint)
 
 	window.SetShortcut(formatCode, wui.KeyControl, wui.KeyF)
+	window.SetShortcut(exportPDF, wui.KeyControl, wui.KeyE)
 	window.SetShortcut(window.Close, wui.KeyEscape)
 
 	window.Show()
@@ -528,4 +582,71 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+type imagePainter struct {
+	img  *image.RGBA
+	font *gofont.Font
+}
+
+var black = color.RGBA{A: 255}
+
+func (p imagePainter) Text(x, y int, s string) {
+	p.font.Write(p.img, s, x, y)
+}
+
+func (p imagePainter) TextSize(s string) (width, height int) {
+	return p.font.Measure(s)
+}
+
+func (p imagePainter) Rect(x, y, width, height int) {
+	p.Line(x, y, x+width-1, y)
+	p.Line(x+width-1, y, x+width-1, y+height-1)
+	p.Line(x+width-1, y+height-1, x, y+height-1)
+	p.Line(x, y+height-1, x, y)
+}
+
+func (p imagePainter) Line(x1, y1, x2, y2 int) {
+	// Bresenham's algorithm copied from:
+	// http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#Go
+	dx := x2 - x1
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y2 - y1
+	if dy < 0 {
+		dy = -dy
+	}
+	var sx, sy int
+	if x1 < x2 {
+		sx = 1
+	} else {
+		sx = -1
+	}
+	if y1 < y2 {
+		sy = 1
+	} else {
+		sy = -1
+	}
+	err := dx - dy
+
+	for {
+		p.img.SetRGBA(x1, y1, black)
+		if x1 == x2 && y1 == y2 {
+			break
+		}
+		e2 := 2 * err
+		if e2 > -dy {
+			err -= dy
+			x1 += sx
+		}
+		if e2 < dx {
+			err += dx
+			y1 += sy
+		}
+	}
+}
+
+func (p imagePainter) LineHeight() int {
+	return p.font.PixelHeight
 }
