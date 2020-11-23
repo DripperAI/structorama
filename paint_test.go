@@ -123,7 +123,9 @@ func TestPaintingWhileLoop(t *testing.T) {
 	// 	|  | while loop    |
 	// 	|__|_______________|
 	p := &mockPainter{lineHeight: 10, textW: 50, textH: 20}
-	area := paintWhileLoop(p, parser.While{Condition: "condition"}, 200, 100)
+	area := paintWhileLoop(p, parser.While{Condition: parser.String{
+		Text: "condition",
+	}}, 200, 100)
 	p.checkPainting(t,
 		`Text(5, 5, "condition")`,
 		`Line(10, 30, 199, 30)`,
@@ -140,7 +142,9 @@ func TestPaintingDoWhileLoop(t *testing.T) {
 	// 	| bottom condition |
 	// 	|__________________|
 	p := &mockPainter{lineHeight: 10, textW: 50, textH: 20}
-	area := paintDoWhileLoop(p, parser.DoWhile{Condition: "condition"}, 200, 100)
+	area := paintDoWhileLoop(p, parser.DoWhile{Condition: parser.String{
+		Text: "condition",
+	}}, 200, 100)
 	p.checkPainting(t,
 		`Line(10, 0, 10, 69)`,
 		`Line(10, 69, 199, 69)`,

@@ -150,6 +150,109 @@ if "c" {
 `)
 }
 
+func TestFormatSwitch(t *testing.T) {
+	checkFormatting(t,
+		`switch"what"{case"1"{"do 1"}case"2"{}case default{"else"}}
+
+
+switch""{}`,
+
+		`switch "what" {
+	case "1" {
+		"do 1"
+	}
+	case "2" {
+		
+	}
+	case default {
+		"else"
+	}
+}
+
+switch "" {
+	
+}
+`)
+}
+
+func TestFormatInfiniteLoop(t *testing.T) {
+	checkFormatting(t,
+		`while{"loop"}
+		
+	
+	while{break "bbb"}`,
+
+		`while {
+	"loop"
+}
+
+while {
+	break "bbb"
+}
+`)
+}
+
+func TestFormatWhileLoop(t *testing.T) {
+	checkFormatting(t,
+		`while   "a==b"{"loop"}
+		
+	
+	while"1!=2"{break "bbb"}`,
+
+		`while "a==b" {
+	"loop"
+}
+
+while "1!=2" {
+	break "bbb"
+}
+`)
+}
+
+func TestFormatDoWhileLoop(t *testing.T) {
+	checkFormatting(t,
+		`do{"loop"}while"false"
+		
+	
+	do{"loop"}while"false"`,
+
+		`do {
+	"loop"
+} while "false"
+
+do {
+	"loop"
+} while "false"
+`)
+}
+
+func TestFormatParallelBlocks(t *testing.T) {
+	checkFormatting(t,
+		`parallel{}parallel{{}}
+	
+	
+	parallel{{"123"}{"456"}}`,
+
+		`parallel {
+	
+}
+parallel {
+	{
+		
+	}
+}
+
+parallel {
+	{
+		"123"
+	}
+	{
+		"456"
+	}
+}
+`)
+}
+
 func checkFormatting(t *testing.T, original, want string) {
 	have, err := FormatString(original)
 	if err != nil {

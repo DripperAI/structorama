@@ -17,7 +17,10 @@ func ParseString(code string) (*Structogram, error) {
 		return Pos{Col: tokens[0].col, Line: tokens[0].line}
 	}
 	endPosition := func() Pos {
-		return Pos{Col: tokens[1].col, Line: tokens[1].line}
+		if len(tokens) >= 2 {
+			return Pos{Col: tokens[1].col, Line: tokens[1].line}
+		}
+		return Pos{}
 	}
 	skipSpace := func() {
 		for len(tokens) > 0 && tokens[0].typ == tokenSpace {
@@ -96,9 +99,13 @@ func ParseString(code string) (*Structogram, error) {
 				Then:      then,
 			}, true
 		} else if seesID("switch") {
-			skip()
 			var switchStmt Switch
-			switchStmt.Subject = eatString()
+			switchStmt.start = position()
+			skip()
+			switchStmt.Subject.start = position()
+			switchStmt.Subject.end = endPosition()
+			switchStmt.Subject.quoted = tokens[0].text
+			switchStmt.Subject.Text = eatString()
 			eat('{')
 			for seesID("case") {
 				skip()
@@ -107,26 +114,39 @@ func ParseString(code string) (*Structogram, error) {
 					skip()
 					c.IsDefault = true
 				} else {
-					c.Condition = eatString()
+					c.Condition.start = position()
+					c.Condition.end = endPosition()
+					c.Condition.quoted = tokens[0].text
+					c.Condition.Text = eatString()
 				}
 				c.Block = parseBlock()
 				switchStmt.Cases = append(switchStmt.Cases, c)
 			}
+			switchStmt.end = endPosition()
 			eat('}')
 			return switchStmt, true
 		} else if seesID("while") {
+			start := position()
 			skip()
 			if sees(tokenString) {
-				return While{
-					Condition: eatString(),
-					Block:     parseBlock(),
-				}, true
+				var w While
+				w.start = start
+				w.Condition.start = position()
+				w.Condition.end = endPosition()
+				w.Condition.quoted = tokens[0].text
+				w.Condition.Text = eatString()
+				w.Block = parseBlock()
+				return w, true
 			} else {
-				return InfiniteLoop{Block: parseBlock()}, true
+				return InfiniteLoop{
+					start: start,
+					Block: parseBlock(),
+				}, true
 			}
 		} else if seesID("do") {
-			skip()
 			var do DoWhile
+			do.start = position()
+			skip()
 			do.Block = parseBlock()
 			if seesID("while") {
 				skip()
@@ -134,7 +154,10 @@ func ParseString(code string) (*Structogram, error) {
 				err = errors.New("keyword 'while' expected at the end of do-while loop")
 				return nil, false
 			}
-			do.Condition = eatString()
+			do.Condition.start = position()
+			do.Condition.end = endPosition()
+			do.Condition.quoted = tokens[0].text
+			do.Condition.Text = eatString()
 			return do, true
 		} else if seesID("break") {
 			var b Break
@@ -153,12 +176,14 @@ func ParseString(code string) (*Structogram, error) {
 			c.Text = eatString()
 			return c, true
 		} else if seesID("parallel") {
-			skip()
 			var p Parallel
+			p.start = position()
+			skip()
 			eat('{')
 			for sees('{') {
 				p.Blocks = append(p.Blocks, parseBlock())
 			}
+			p.end = endPosition()
 			eat('}')
 			return p, true
 		}

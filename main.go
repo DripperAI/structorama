@@ -347,7 +347,7 @@ func minSize(p painter, node interface{}) (width, height int) {
 		return minSizeInfiniteLoop(margin, blockW, blockH)
 
 	case parser.While:
-		textW, textH := p.TextSize(x.Condition)
+		textW, textH := p.TextSize(x.Condition.Text)
 		blockW, blockH := minSize(p, x.Block)
 		return minSizeWhile(margin, textW, textH, blockW, blockH)
 
@@ -459,9 +459,9 @@ func paintInfiniteLoopLines(p painter, loop parser.InfiniteLoop, width, height i
 
 func paintWhileLoop(p painter, while parser.While, width, height int) (blockArea rectangle) {
 	margin := p.LineHeight()
-	_, textH := p.TextSize(while.Condition)
+	_, textH := p.TextSize(while.Condition.Text)
 	top := margin + textH
-	p.Text(margin/2, margin/2, while.Condition)
+	p.Text(margin/2, margin/2, while.Condition.Text)
 	p.Line(margin, top, width-1, top)
 	p.Line(margin, top, margin, height-1)
 	return rectangle{
@@ -474,11 +474,11 @@ func paintWhileLoop(p painter, while parser.While, width, height int) (blockArea
 
 func paintDoWhileLoop(p painter, do parser.DoWhile, width, height int) (blockArea rectangle) {
 	margin := p.LineHeight()
-	_, textH := p.TextSize(do.Condition)
+	_, textH := p.TextSize(do.Condition.Text)
 	bottom := height - 1 - margin - textH
 	p.Line(margin, 0, margin, bottom)
 	p.Line(margin, bottom, width-1, bottom)
-	p.Text(margin/2, bottom+1+margin/2, do.Condition)
+	p.Text(margin/2, bottom+1+margin/2, do.Condition.Text)
 	return rectangle{
 		x:      margin + 1,
 		y:      0,

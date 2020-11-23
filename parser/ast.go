@@ -83,47 +83,54 @@ func (i IfElse) Start() Pos { return i.start }
 func (i IfElse) End() Pos   { return i.Else.End() }
 
 type Switch struct {
-	Subject string
+	Subject String
 	Cases   []SwitchCase
+	start   Pos
+	end     Pos
 }
 
-func (Switch) Start() Pos { return Pos{} } // TODO
-func (Switch) End() Pos   { return Pos{} } // TODO
+func (s Switch) Start() Pos { return s.start }
+func (s Switch) End() Pos   { return s.end }
 
 type SwitchCase struct {
 	// IsDefault and Condition are exclusive, a switch case is either the
 	// default (case default {...}) or has a Condition (case "condition" {...}).
 	IsDefault bool
-	Condition string
+	Condition String
 	Block     Block
 }
 
 type Parallel struct {
 	Blocks []Block
+	start  Pos
+	end    Pos
 }
 
-func (Parallel) Start() Pos { return Pos{} } // TODO
-func (Parallel) End() Pos   { return Pos{} } // TODO
+func (p Parallel) Start() Pos { return p.start }
+func (p Parallel) End() Pos   { return p.end }
 
 type InfiniteLoop struct {
 	Block Block
+	start Pos
 }
 
-func (InfiniteLoop) Start() Pos { return Pos{} } // TODO
-func (InfiniteLoop) End() Pos   { return Pos{} } // TODO
+func (i InfiniteLoop) Start() Pos { return i.start }
+func (i InfiniteLoop) End() Pos   { return i.Block.End() }
 
 type While struct {
-	Condition string
+	Condition String
 	Block     Block
+	start     Pos
 }
 
-func (While) Start() Pos { return Pos{} } // TODO
-func (While) End() Pos   { return Pos{} } // TODO
+func (w While) Start() Pos { return w.start }
+func (w While) End() Pos   { return w.Block.End() }
 
 type DoWhile struct {
 	Block     Block
-	Condition string
+	Condition String
+	start     Pos
 }
 
-func (DoWhile) Start() Pos { return Pos{} } // TODO
-func (DoWhile) End() Pos   { return Pos{} } // TODO
+func (d DoWhile) Start() Pos { return d.start }
+func (d DoWhile) End() Pos   { return d.Condition.End() }

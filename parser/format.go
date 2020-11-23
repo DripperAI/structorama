@@ -90,6 +90,79 @@ func (p *printer) print(node interface{}) {
 			}
 			p.print(stmt)
 		}
+	case Switch:
+		p.WriteString("switch ")
+		p.WriteString(x.Subject.quoted)
+		p.WriteString(" {")
+		p.indentRight()
+		p.newLine()
+		for i, c := range x.Cases {
+			if i > 0 {
+				p.newLine()
+			}
+			if c.IsDefault {
+				p.WriteString("case default {")
+			} else {
+				p.WriteString("case ")
+				p.WriteString(c.Condition.quoted)
+				p.WriteString(" {")
+			}
+			p.indentRight()
+			p.newLine()
+			p.print(c.Block)
+			p.indentLeft()
+			p.newLine()
+			p.WriteString("}")
+		}
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
+	case InfiniteLoop:
+		p.WriteString("while {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Block)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
+	case While:
+		p.WriteString("while ")
+		p.WriteString(x.Condition.quoted)
+		p.WriteString(" {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Block)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
+	case DoWhile:
+		p.WriteString("do {")
+		p.indentRight()
+		p.newLine()
+		p.print(x.Block)
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("} while ")
+		p.WriteString(x.Condition.quoted)
+	case Parallel:
+		p.WriteString("parallel {")
+		p.indentRight()
+		p.newLine()
+		for i, b := range x.Blocks {
+			if i > 0 {
+				p.newLine()
+			}
+			p.WriteString("{")
+			p.indentRight()
+			p.newLine()
+			p.print(b)
+			p.indentLeft()
+			p.newLine()
+			p.WriteString("}")
+		}
+		p.indentLeft()
+		p.newLine()
+		p.WriteString("}")
 	default:
 		p.err = fmt.Errorf("printer.print: unhandled node type %T", node)
 	}

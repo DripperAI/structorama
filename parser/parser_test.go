@@ -173,7 +173,16 @@ switch "thing" {}
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		Switch{Subject: "thing"},
+		Switch{
+			start: Pos{Col: 1, Line: 2},
+			end:   Pos{Col: 18, Line: 2},
+			Subject: String{
+				Text:   "thing",
+				quoted: `"thing"`,
+				start:  Pos{Col: 8, Line: 2},
+				end:    Pos{Col: 15, Line: 2},
+			},
+		},
 	}})
 }
 
@@ -187,17 +196,34 @@ switch "x" {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		Switch{
-			Subject: "x",
+			start: Pos{Col: 1, Line: 2},
+			end:   Pos{Col: 2, Line: 5},
+			Subject: String{
+				Text:   "x",
+				quoted: `"x"`,
+				start:  Pos{Col: 8, Line: 2},
+				end:    Pos{Col: 11, Line: 2},
+			},
 			Cases: []SwitchCase{
 				{
-					Condition: "1",
+					Condition: String{
+						Text:   "1",
+						quoted: `"1"`,
+						start:  Pos{Col: 7, Line: 3},
+						end:    Pos{Col: 10, Line: 3},
+					},
 					Block: Block{
 						start: Pos{Col: 11, Line: 3},
 						end:   Pos{Col: 13, Line: 3},
 					},
 				},
 				{
-					Condition: "2",
+					Condition: String{
+						Text:   "2",
+						quoted: `"2"`,
+						start:  Pos{Col: 7, Line: 4},
+						end:    Pos{Col: 10, Line: 4},
+					},
 					Block: Block{
 						start: Pos{Col: 11, Line: 4},
 						end:   Pos{Col: 20, Line: 4},
@@ -226,10 +252,22 @@ switch "x" {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		Switch{
-			Subject: "x",
+			start: Pos{Col: 1, Line: 2},
+			end:   Pos{Col: 2, Line: 5},
+			Subject: String{
+				Text:   "x",
+				quoted: `"x"`,
+				start:  Pos{Col: 8, Line: 2},
+				end:    Pos{Col: 11, Line: 2},
+			},
 			Cases: []SwitchCase{
 				{
-					Condition: "1",
+					Condition: String{
+						Text:   "1",
+						quoted: `"1"`,
+						start:  Pos{Col: 7, Line: 3},
+						end:    Pos{Col: 10, Line: 3},
+					},
 					Block: Block{
 						start: Pos{Col: 11, Line: 3},
 						end:   Pos{Col: 13, Line: 3},
@@ -251,19 +289,23 @@ func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Block: Block{
-			start: Pos{Col: 7, Line: 1},
-			end:   Pos{Col: 15, Line: 1},
-			Statements: []Statement{
-				Instruction{
-					Text:   "do",
-					quoted: `"do"`,
-					start:  Pos{Col: 9, Line: 1},
-					end:    Pos{Col: 13, Line: 1},
+		InfiniteLoop{
+			start: Pos{Col: 1, Line: 1},
+			Block: Block{
+				start: Pos{Col: 7, Line: 1},
+				end:   Pos{Col: 15, Line: 1},
+				Statements: []Statement{
+					Instruction{
+						Text:   "do",
+						quoted: `"do"`,
+						start:  Pos{Col: 9, Line: 1},
+						end:    Pos{Col: 13, Line: 1},
+					},
 				},
 			},
-		}},
+		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 15, Line: 1})
 }
 
 func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
@@ -271,7 +313,13 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		While{
-			Condition: "condition",
+			start: Pos{Col: 1, Line: 1},
+			Condition: String{
+				Text:   "condition",
+				quoted: `"condition"`,
+				start:  Pos{Col: 7, Line: 1},
+				end:    Pos{Col: 18, Line: 1},
+			},
 			Block: Block{
 				start: Pos{Col: 19, Line: 1},
 				end:   Pos{Col: 27, Line: 1},
@@ -286,6 +334,7 @@ func TestWhileLoopHasConditionNextToTheWhileKeyword(t *testing.T) {
 			},
 		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 27, Line: 1})
 }
 
 func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
@@ -293,6 +342,7 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
 		DoWhile{
+			start: Pos{Col: 1, Line: 1},
 			Block: Block{
 				start: Pos{Col: 4, Line: 1},
 				end:   Pos{Col: 12, Line: 1},
@@ -305,28 +355,38 @@ func TestDoWhileLoopHasConditionInFooter(t *testing.T) {
 					},
 				},
 			},
-			Condition: "condition",
+			Condition: String{
+				Text:   "condition",
+				quoted: `"condition"`,
+				start:  Pos{Col: 19, Line: 1},
+				end:    Pos{Col: 30, Line: 1},
+			},
 		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 30, Line: 1})
 }
 
 func TestLoopsCanHaveBreaks(t *testing.T) {
 	s, err := ParseString(`while { break "destination" }`)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		InfiniteLoop{Block: Block{
-			start: Pos{Col: 7, Line: 1},
-			end:   Pos{Col: 30, Line: 1},
-			Statements: []Statement{
-				Break{
-					Text:   "destination",
-					quoted: `"destination"`,
-					start:  Pos{Col: 9, Line: 1},
-					end:    Pos{Col: 28, Line: 1},
+		InfiniteLoop{
+			start: Pos{Col: 1, Line: 1},
+			Block: Block{
+				start: Pos{Col: 7, Line: 1},
+				end:   Pos{Col: 30, Line: 1},
+				Statements: []Statement{
+					Break{
+						Text:   "destination",
+						quoted: `"destination"`,
+						start:  Pos{Col: 9, Line: 1},
+						end:    Pos{Col: 28, Line: 1},
+					},
 				},
 			},
-		}},
+		},
 	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 30, Line: 1})
 }
 
 func TestCallBlockHasOneStringInstruction(t *testing.T) {
@@ -358,36 +418,48 @@ parallel {}
 `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Statements: []Statement{
-		Parallel{Blocks: []Block{
-			Block{
-				start: Pos{Col: 2, Line: 3},
-				end:   Pos{Col: 3, Line: 5},
-				Statements: []Statement{
-					Instruction{
-						Text:   "block 1",
-						quoted: `"block 1"`,
-						start:  Pos{Col: 3, Line: 4},
-						end:    Pos{Col: 12, Line: 4},
+		Parallel{
+			start: Pos{Col: 1, Line: 2},
+			end:   Pos{Col: 2, Line: 10},
+			Blocks: []Block{
+				Block{
+					start: Pos{Col: 2, Line: 3},
+					end:   Pos{Col: 3, Line: 5},
+					Statements: []Statement{
+						Instruction{
+							Text:   "block 1",
+							quoted: `"block 1"`,
+							start:  Pos{Col: 3, Line: 4},
+							end:    Pos{Col: 12, Line: 4},
+						},
+					},
+				},
+				Block{
+					start: Pos{Col: 2, Line: 6},
+					end:   Pos{Col: 4, Line: 6},
+				},
+				Block{
+					start: Pos{Col: 2, Line: 7},
+					end:   Pos{Col: 3, Line: 9},
+					Statements: []Statement{
+						Instruction{
+							Text:   "block 3",
+							quoted: `"block 3"`,
+							start:  Pos{Col: 3, Line: 8},
+							end:    Pos{Col: 12, Line: 8},
+						},
 					},
 				},
 			},
-			Block{
-				start: Pos{Col: 2, Line: 6},
-				end:   Pos{Col: 4, Line: 6},
-			},
-			Block{
-				start: Pos{Col: 2, Line: 7},
-				end:   Pos{Col: 3, Line: 9},
-				Statements: []Statement{
-					Instruction{
-						Text:   "block 3",
-						quoted: `"block 3"`,
-						start:  Pos{Col: 3, Line: 8},
-						end:    Pos{Col: 12, Line: 8},
-					},
-				},
-			},
-		}},
-		Parallel{},
+		},
+		Parallel{
+			start: Pos{Col: 1, Line: 12},
+			end:   Pos{Col: 12, Line: 12},
+		},
 	}})
+}
+
+func TestIncompleteSwitchGivesParseError(t *testing.T) {
+	_, err := ParseString(`switch "" {`)
+	check.Eq(t, err.Error(), "parse error: token '}' expected")
 }
