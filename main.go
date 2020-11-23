@@ -167,6 +167,7 @@ parallel {
 		dlg := wui.NewFileSaveDialog()
 		dlg.SetTitle("Select output path")
 		dlg.AddFilter("PDF File", ".pdf")
+		dlg.SetInitialPath("diagram.pdf")
 		if ok, path := dlg.Execute(window); ok {
 			err := pdf.OutputFileAndClose(path)
 			if err != nil {
