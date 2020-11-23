@@ -208,9 +208,9 @@ func ParseString(code string) (*Structogram, error) {
 	if seesID("title") {
 		skip()
 		s.Title.start = position()
+		s.Title.end = endPosition()
 		s.Title.quoted = tokens[0].text
 		s.Title.Text = eatString()
-		s.Title.end = position()
 	}
 	// Parse code.
 	s.Statements = parseStatements()

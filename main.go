@@ -110,7 +110,7 @@ parallel {
 		if err != nil {
 			canvas.TextRectFormat(
 				0, 0, canvas.Width(), canvas.Height(),
-				err.Error(), wui.FormatCenter, wui.RGB(255, 0, 0),
+				err.Error(), wui.FormatBottomCenter, wui.RGB(255, 0, 0),
 			)
 		}
 	})

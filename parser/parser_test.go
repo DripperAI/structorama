@@ -46,7 +46,7 @@ func TestEmptyStringYieldsEmptyStructogram(t *testing.T) {
 }
 
 func TestTitleComesFirst(t *testing.T) {
-	s, err := ParseString(`title "the title"`)
+	s, err := ParseString(`title "the title" `)
 	check.Eq(t, err, nil)
 	check.Eq(t, s, &Structogram{Title: String{
 		Text:   "the title",
