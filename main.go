@@ -143,7 +143,7 @@ parallel {
 			wui.MessageBoxError("Cannot load font", err.Error())
 			return
 		}
-		font.PixelHeight = 20
+		font.HeightInPixels = 20
 
 		// DIN A4 pages are 210 x 297 mm in size,we keep our image at the same
 		// aspect ratio.
@@ -649,5 +649,5 @@ func (p imagePainter) Line(x1, y1, x2, y2 int) {
 }
 
 func (p imagePainter) LineHeight() int {
-	return p.font.PixelHeight
+	return p.font.HeightInPixels
 }
