@@ -52,7 +52,7 @@ func main() {
 	window.SetState(wui.WindowMaximized)
 	window.SetOnShow(codeEditor.Focus)
 
-	const example = `title "optional diagram caption"
+	const example2 = `title "optional diagram caption"
 
 "counter := 0"
 
@@ -92,6 +92,13 @@ parallel {
 		"block right of the empty block"
 	}
 }`
+
+	const example = `if "ashudihasudishaiu" {
+	call "asdi"
+} else {
+	call "asdi"
+}
+`
 
 	// TODO
 	//codeEdit.SetLineBreak("\n"), this should probably be the default in Go.
@@ -357,7 +364,51 @@ func paintIn(p painter, node interface{}, width, height int) {
 		}, width, height)
 
 	case parser.IfElse:
-		// TODO
+		thenW, thenH := minSize(p, x.Then)
+		elseW, elseH := minSize(p, x.Else)
+		blockH := max(thenH, elseH)
+		// bottom is for the separating line between the condition at the top
+		// and the blocks below.
+		bottom := height - blockH - 1
+
+		// The width of our available area might be greater than we need them to
+		// be for for the two blocks. In that case we want to split the
+		// available width in the same ratio as thenW / elseW.
+		thenW = int(float64(thenW)/float64(thenW+elseW)*float64(width-1) + 0.5)
+		elseW = width - 1 - thenW
+
+		p.Line(0, bottom, width-1, bottom)     // Separate top from bottom.
+		p.Line(thenW, bottom, thenW, height-1) // Separate left from right block.
+		p.Line(0, 0, thenW, bottom-1)          // Diagonal from top-left.
+		p.Line(thenW, bottom-1, width-1, 0)    // Diagonal from top-right.
+
+		_, textH := p.TextSize(x.Condition.Text)
+		textH = max(textH, margin)
+		// We place the text at the top and offset it from left so that it
+		// aligns with the diagonal anchored at the top-left. This diagonal has
+		// a slope of textH / y as you can see in the sketch below. We multiply
+		// it by thenW to get the right ratio for the text to offset relative to
+		// the available width.
+		//
+		// 	____________________   0
+		//       --__  | text | _-
+		// 	      --|______|-
+		// 	          --__-
+		// 	|-------------|-----|  bottom
+		//         thenW     elseW
+		textX := thenW * textH / bottom
+		p.Text(textX+margin/4, 0, x.Condition.Text)
+
+		paintIn(
+			offsetPainter{p: p, dy: bottom + 1},
+			x.Then,
+			thenW, blockH,
+		)
+		paintIn(
+			offsetPainter{p: p, dx: thenW + 1, dy: bottom + 1},
+			x.Else,
+			elseW, blockH,
+		)
 
 	case parser.Switch:
 		// TODO
@@ -429,7 +480,14 @@ func minSize(p painter, node interface{}) (width, height int) {
 		})
 
 	case parser.IfElse:
-		return 100, 30 // TODO
+		thenW, thenH := minSize(p, x.Then)
+		elseW, elseH := minSize(p, x.Else)
+		textW, textH := p.TextSize(x.Condition.Text)
+		textW += margin / 2
+		textH = max(textH, margin)
+		bottom := max(thenW+1+elseW, textW+textW/2)
+		h := int(float64(bottom*textH)/float64(bottom-textW) + 0.5)
+		return bottom, h + 1 + max(thenH, elseH)
 
 	case parser.Switch:
 		return 100, 30 // TODO
