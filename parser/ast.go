@@ -65,6 +65,7 @@ func (b Block) End() Pos   { return b.end }
 
 type If struct {
 	Condition String
+	TrueText  String
 	Then      Block
 	start     Pos
 }
@@ -74,7 +75,9 @@ func (i If) End() Pos   { return i.Then.End() }
 
 type IfElse struct {
 	Condition String
+	TrueText  String
 	Then      Block
+	FalseText String
 	Else      Block
 	start     Pos
 }

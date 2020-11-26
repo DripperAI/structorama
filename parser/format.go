@@ -35,7 +35,7 @@ func (p *printer) print(node interface{}) {
 	}
 	switch x := node.(type) {
 	case *Structogram:
-		if x.Title.Text != "" {
+		if x.Title.quoted != "" {
 			p.WriteString("title ")
 			p.WriteString(x.Title.quoted)
 			if len(x.Statements) > 0 {
@@ -62,7 +62,13 @@ func (p *printer) print(node interface{}) {
 		p.WriteString("break ")
 		p.WriteString(x.quoted)
 	case If:
-		p.WriteString("if " + x.Condition.quoted + " {")
+		p.WriteString("if ")
+		p.WriteString(x.Condition.quoted)
+		if x.TrueText.quoted != "" {
+			p.WriteString(" ")
+			p.WriteString(x.TrueText.quoted)
+		}
+		p.WriteString(" {")
 		p.indentRight()
 		p.newLine()
 		p.print(x.Then)
@@ -70,13 +76,24 @@ func (p *printer) print(node interface{}) {
 		p.newLine()
 		p.WriteString("}")
 	case IfElse:
-		p.WriteString("if " + x.Condition.quoted + " {")
+		p.WriteString("if ")
+		p.WriteString(x.Condition.quoted)
+		if x.TrueText.quoted != "" {
+			p.WriteString(" ")
+			p.WriteString(x.TrueText.quoted)
+		}
+		p.WriteString(" {")
 		p.indentRight()
 		p.newLine()
 		p.print(x.Then)
 		p.indentLeft()
 		p.newLine()
-		p.WriteString("} else {")
+		p.WriteString("} else ")
+		if x.FalseText.quoted != "" {
+			p.WriteString(x.FalseText.quoted)
+			p.WriteString(" ")
+		}
+		p.WriteString("{")
 		p.indentRight()
 		p.newLine()
 		p.print(x.Else)

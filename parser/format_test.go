@@ -41,6 +41,10 @@ break "can have multiple lines"
 `)
 }
 
+func TestEmptyTitleStays(t *testing.T) {
+	checkFormatting(t, `title ""`, `title ""`)
+}
+
 func TestThereAreAlwaysOneEmptyLineBelowTheTitle(t *testing.T) {
 	checkFormatting(t,
 		`title "some caption" "instruction"`,
@@ -82,6 +86,40 @@ func TestIfElseIsFormattedLikeGo(t *testing.T) {
 	"then"
 } else {
 	"not"
+}
+`)
+}
+
+func TestIfElseTrueAndFalseTextsAppearNextToTheKeywords(t *testing.T) {
+	checkFormatting(t, `
+if"true""T"{}
+if"true""T"{}else"F"{}
+`,
+
+		`if "true" "T" {
+	
+}
+if "true" "T" {
+	
+} else "F" {
+	
+}
+`)
+}
+
+func TestEmptyIfElseTrueAndFalseTextsStay(t *testing.T) {
+	checkFormatting(t, `
+if"true"""{}
+if"true"""{}else""{}
+`,
+
+		`if "true" "" {
+	
+}
+if "true" "" {
+	
+} else "" {
+	
 }
 `)
 }

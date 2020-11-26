@@ -78,24 +78,40 @@ func ParseString(code string) (*Structogram, error) {
 		} else if seesID("if") {
 			ifStart := position()
 			skip()
-			var condition String
+			var condition, trueText String
 			condition.start = position()
 			condition.end = endPosition()
 			condition.quoted = tokens[0].text
 			condition.Text = eatString()
+			if sees(tokenString) {
+				trueText.start = position()
+				trueText.end = endPosition()
+				trueText.quoted = tokens[0].text
+				trueText.Text = eatString()
+			}
 			then := parseBlock()
 			if seesID("else") {
 				skip()
+				var falseText String
+				if sees(tokenString) {
+					falseText.start = position()
+					falseText.end = endPosition()
+					falseText.quoted = tokens[0].text
+					falseText.Text = eatString()
+				}
 				return IfElse{
 					start:     ifStart,
 					Condition: condition,
+					TrueText:  trueText,
 					Then:      then,
+					FalseText: falseText,
 					Else:      parseBlock(),
 				}, true
 			}
 			return If{
 				start:     ifStart,
 				Condition: condition,
+				TrueText:  trueText,
 				Then:      then,
 			}, true
 		} else if seesID("switch") {

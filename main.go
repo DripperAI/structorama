@@ -361,9 +361,11 @@ func paintIn(p painter, node interface{}, width, height int) {
 		paintIn(p, parser.IfElse{
 			Condition: x.Condition,
 			Then:      x.Then,
+			TrueText:  x.TrueText,
 		}, width, height)
 
 	case parser.IfElse:
+		// TODO Paint TrueText and FalseText.
 		thenW, thenH := minSize(p, x.Then)
 		elseW, elseH := minSize(p, x.Else)
 		blockH := max(thenH, elseH)
@@ -477,9 +479,11 @@ func minSize(p painter, node interface{}) (width, height int) {
 		return minSize(p, parser.IfElse{
 			Condition: x.Condition,
 			Then:      x.Then,
+			TrueText:  x.TrueText,
 		})
 
 	case parser.IfElse:
+		// TODO Consider TrueText and FalseText for size.
 		thenW, thenH := minSize(p, x.Then)
 		elseW, elseH := minSize(p, x.Else)
 		textW, textH := p.TextSize(x.Condition.Text)

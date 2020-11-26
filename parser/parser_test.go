@@ -120,7 +120,34 @@ if "condition" {
 	check.Eq(t, s.Statements[0].End(), Pos{Col: 2, Line: 5})
 }
 
-func TestIfElseHasBoth(t *testing.T) {
+func TestIfCanHaveTrueText(t *testing.T) {
+	s, err := ParseString(`if "condition" "TRUE" {}`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		If{
+			start: Pos{Col: 1, Line: 1},
+			Condition: String{
+				Text:   "condition",
+				quoted: `"condition"`,
+				start:  Pos{Col: 4, Line: 1},
+				end:    Pos{Col: 15, Line: 1},
+			},
+			TrueText: String{
+				Text:   "TRUE",
+				quoted: `"TRUE"`,
+				start:  Pos{Col: 16, Line: 1},
+				end:    Pos{Col: 22, Line: 1},
+			},
+			Then: Block{
+				start: Pos{Col: 23, Line: 1},
+				end:   Pos{Col: 25, Line: 1},
+			},
+		},
+	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 25, Line: 1})
+}
+
+func TestIfElseHasBothBlocks(t *testing.T) {
 	s, err := ParseString(`
 if "false" {
 	"then this"
@@ -165,6 +192,43 @@ if "false" {
 		},
 	}})
 	check.Eq(t, s.Statements[0].End(), Pos{Col: 2, Line: 6})
+}
+
+func TestIfElseCanHaveTrueAndFalseTexts(t *testing.T) {
+	s, err := ParseString(`if "" "yes" {} else "no" {}`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		IfElse{
+			start: Pos{Col: 1, Line: 1},
+			Condition: String{
+				Text:   "",
+				quoted: `""`,
+				start:  Pos{Col: 4, Line: 1},
+				end:    Pos{Col: 6, Line: 1},
+			},
+			TrueText: String{
+				Text:   "yes",
+				quoted: `"yes"`,
+				start:  Pos{Col: 7, Line: 1},
+				end:    Pos{Col: 12, Line: 1},
+			},
+			Then: Block{
+				start: Pos{Col: 13, Line: 1},
+				end:   Pos{Col: 15, Line: 1},
+			},
+			FalseText: String{
+				Text:   "no",
+				quoted: `"no"`,
+				start:  Pos{Col: 21, Line: 1},
+				end:    Pos{Col: 25, Line: 1},
+			},
+			Else: Block{
+				start: Pos{Col: 26, Line: 1},
+				end:   Pos{Col: 28, Line: 1},
+			},
+		},
+	}})
+	check.Eq(t, s.Statements[0].End(), Pos{Col: 28, Line: 1})
 }
 
 func TestSwitchCanBeEmpty(t *testing.T) {
