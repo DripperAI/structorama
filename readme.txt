@@ -24,8 +24,8 @@ title "optional diagram caption"
 if "only if" {
 }
 
-if "if-else" {
-} else {
+if "if-else" "T" {
+} else "F" {
 }
 
 switch "subject" {
@@ -65,11 +65,11 @@ title "counter example (countering what?)"
 
 "counter = 0"
 while "counter != 10" {
-	"print counter"
+	"print \"counter is\""
 
-	if "counter % 2 == 0" {
+	if "counter % 2 == 0" "yes" {
 		call "printEven()"
-	} else {
+	} else "no" {
 		call "printOdd()"
 	}
 
