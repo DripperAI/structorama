@@ -52,15 +52,15 @@ func main() {
 	window.SetState(wui.WindowMaximized)
 	window.SetOnShow(codeEditor.Focus)
 
-	const example2 = `title "optional diagram caption"
+	const example = `title "optional diagram caption"
 
 "counter := 0"
 
 if "only if" {
 }
 
-if "if-else" {
-} else {
+if "if-else" "T" {
+} else "F" {
 }
 
 switch "subject" {
@@ -92,13 +92,6 @@ parallel {
 		"block right of the empty block"
 	}
 }`
-
-	const example = `if "ashudihasudishaiu" {
-	call "asdi"
-} else {
-	call "asdi"
-}
-`
 
 	// TODO
 	//codeEdit.SetLineBreak("\n"), this should probably be the default in Go.
