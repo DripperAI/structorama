@@ -291,6 +291,26 @@ parallel {
 `)
 }
 
+func TestBlockContentHasEmptyLines(t *testing.T) {
+	checkFormatting(t, `
+if "" {
+	
+	"a"
+	"b"
+	
+	
+	"c"
+}`,
+
+		`if "" {
+	"a"
+	"b"
+
+	"c"
+}
+`)
+}
+
 func checkFormatting(t *testing.T, original, want string) {
 	have, err := FormatString(original)
 	if err != nil {

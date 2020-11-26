@@ -103,6 +103,11 @@ func (p *printer) print(node interface{}) {
 	case Block:
 		for i, stmt := range x.Statements {
 			if i > 0 {
+				a := x.Statements[i-1]
+				b := x.Statements[i]
+				if b.Start().Line-a.End().Line >= 2 {
+					p.WriteString("\n")
+				}
 				p.newLine()
 			}
 			p.print(stmt)
