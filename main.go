@@ -481,9 +481,11 @@ func minSize(p painter, node interface{}) (width, height int) {
 		textW, textH := p.TextSize(x.Condition.Text)
 		textW += margin / 2
 		textH = max(textH, margin)
-		bottom := max(thenW+1+elseW, textW+textW/2)
-		h := int(float64(bottom*textH)/float64(bottom-textW) + 0.5)
-		return bottom, h + 1 + max(thenH, elseH)
+		wantH := textH + textH/4 + margin
+		totalWByText := int(float64(wantH*textW)/float64(wantH-textH) + 0.5)
+		totalW := max(thenW+1+elseW, totalWByText)
+		h := int(float64(totalW*textH)/float64(totalW-textW) + 0.5)
+		return totalW, h + 1 + max(thenH, elseH)
 
 	case parser.Switch:
 		return 100, 30 // TODO
