@@ -384,7 +384,8 @@ func paintIn(p painter, node interface{}, width, height int) {
 		// then and else block.
 		textW, _ := p.TextSize(x.Condition.Text)
 		textW += margin / 2
-		p.Text(int(float64(thenW+elseW-textW)*thenRatio+0.5), 0, x.Condition.Text)
+		textX := int(float64(thenW+elseW-textW)*thenRatio + 0.5)
+		p.Text(textX+margin/4, 0, x.Condition.Text)
 
 		_, trueH := p.TextSize(x.TrueText.Text)
 		p.Text(margin/4, bottom-trueH-margin/4, x.TrueText.Text)
