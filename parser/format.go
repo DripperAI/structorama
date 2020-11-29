@@ -122,13 +122,15 @@ func (p *printer) print(node interface{}) {
 			if i > 0 {
 				p.newLine()
 			}
+			p.WriteString("case ")
 			if c.IsDefault {
-				p.WriteString("case default {")
-			} else {
-				p.WriteString("case ")
-				p.WriteString(c.Condition.quoted)
-				p.WriteString(" {")
+				p.WriteString("default ")
 			}
+			if c.Condition.quoted != "" {
+				p.WriteString(c.Condition.quoted)
+				p.WriteString(" ")
+			}
+			p.WriteString("{")
 			p.indentRight()
 			p.newLine()
 			p.print(c.Block)

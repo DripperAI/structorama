@@ -129,6 +129,12 @@ func ParseString(code string) (*Structogram, error) {
 				if seesID("default") {
 					skip()
 					c.IsDefault = true
+					if sees(tokenString) {
+						c.Condition.start = position()
+						c.Condition.end = endPosition()
+						c.Condition.quoted = tokens[0].text
+						c.Condition.Text = eatString()
+					}
 				} else {
 					c.Condition.start = position()
 					c.Condition.end = endPosition()

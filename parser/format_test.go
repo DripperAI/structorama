@@ -213,6 +213,21 @@ switch "" {
 `)
 }
 
+func TestSwitchDefaultCaseTextIsOnSameLine(t *testing.T) {
+	checkFormatting(t,
+		`switch"what"{case"1"{"do 1"}case default"def"{"else"}}`,
+
+		`switch "what" {
+	case "1" {
+		"do 1"
+	}
+	case default "def" {
+		"else"
+	}
+}
+`)
+}
+
 func TestFormatInfiniteLoop(t *testing.T) {
 	checkFormatting(t,
 		`while{"loop"}
@@ -312,6 +327,7 @@ if "" {
 }
 
 func checkFormatting(t *testing.T, original, want string) {
+	t.Helper()
 	have, err := FormatString(original)
 	if err != nil {
 		t.Fatal(err)

@@ -349,6 +349,38 @@ switch "x" {
 	}})
 }
 
+func TestSwitchDefaultCaseCanHaveText(t *testing.T) {
+	s, err := ParseString(`switch "" { case default "else" {} }`)
+	check.Eq(t, err, nil)
+	check.Eq(t, s, &Structogram{Statements: []Statement{
+		Switch{
+			start: Pos{Col: 1, Line: 1},
+			end:   Pos{Col: 37, Line: 1},
+			Subject: String{
+				Text:   "",
+				quoted: `""`,
+				start:  Pos{Col: 8, Line: 1},
+				end:    Pos{Col: 10, Line: 1},
+			},
+			Cases: []SwitchCase{
+				{
+					IsDefault: true,
+					Condition: String{
+						Text:   "else",
+						quoted: `"else"`,
+						start:  Pos{Col: 26, Line: 1},
+						end:    Pos{Col: 32, Line: 1},
+					},
+					Block: Block{
+						start: Pos{Col: 33, Line: 1},
+						end:   Pos{Col: 35, Line: 1},
+					},
+				},
+			},
+		},
+	}})
+}
+
 func TestInfiniteLoopHasNoCondition(t *testing.T) {
 	s, err := ParseString(`while { "do" }`)
 	check.Eq(t, err, nil)

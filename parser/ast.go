@@ -96,8 +96,6 @@ func (s Switch) Start() Pos { return s.start }
 func (s Switch) End() Pos   { return s.end }
 
 type SwitchCase struct {
-	// IsDefault and Condition are exclusive, a switch case is either the
-	// default (case default {...}) or has a Condition (case "condition" {...}).
 	IsDefault bool
 	Condition String
 	Block     Block
