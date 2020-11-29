@@ -358,7 +358,6 @@ func paintIn(p painter, node interface{}, width, height int) {
 		}, width, height)
 
 	case parser.IfElse:
-		// TODO Paint TrueText and FalseText.
 		thenW, thenH := minSize(p, x.Then)
 		elseW, elseH := minSize(p, x.Else)
 		blockH := max(thenH, elseH)
@@ -369,7 +368,8 @@ func paintIn(p painter, node interface{}, width, height int) {
 		// The width of our available area might be greater than we need them to
 		// be for for the two blocks. In that case we want to split the
 		// available width in the same ratio as thenW / elseW.
-		thenW = int(float64(thenW)/float64(thenW+elseW)*float64(width-1) + 0.5)
+		thenRatio := float64(thenW) / float64(thenW+elseW)
+		thenW = int(thenRatio*float64(width-1) + 0.5)
 		elseW = width - 1 - thenW
 
 		p.Line(0, bottom, width-1, bottom)     // Separate top from bottom.
@@ -377,22 +377,21 @@ func paintIn(p painter, node interface{}, width, height int) {
 		p.Line(0, 0, thenW, bottom-1)          // Diagonal from top-left.
 		p.Line(thenW, bottom-1, width-1, 0)    // Diagonal from top-right.
 
-		_, textH := p.TextSize(x.Condition.Text)
-		textH = max(textH, margin)
-		// We place the text at the top and offset it from left so that it
-		// aligns with the diagonal anchored at the top-left. This diagonal has
-		// a slope of textH / y as you can see in the sketch below. We multiply
-		// it by thenW to get the right ratio for the text to offset relative to
-		// the available width.
-		//
-		// 	____________________   0
-		//       --__  | text | _-
-		// 	      --|______|-
-		// 	          --__-
-		// 	|-------------|-----|  bottom
-		//         thenW     elseW
-		textX := thenW * textH / bottom
+		// Draw the condition at the same relative offset as the left to right
+		// block. E.g. if the then block is 2/3 the width and the else block is
+		// 1/3 the width, the text should be placed so that it has 2/3 of the
+		// text width left and 1/3 of the text width right of the border between
+		// then and else block.
+		textW, _ := p.TextSize(x.Condition.Text)
+		textW += margin / 2
+		textX := int(float64(thenW+elseW-textW)*thenRatio + 0.5)
 		p.Text(textX+margin/4, 0, x.Condition.Text)
+
+		_, trueH := p.TextSize(x.TrueText.Text)
+		p.Text(margin/4, bottom-trueH-margin/4, x.TrueText.Text)
+
+		falseW, falseH := p.TextSize(x.FalseText.Text)
+		p.Text(width-falseW-margin/4, bottom-falseH-margin/4, x.FalseText.Text)
 
 		paintIn(
 			offsetPainter{p: p, dy: bottom + 1},
@@ -482,9 +481,11 @@ func minSize(p painter, node interface{}) (width, height int) {
 		textW, textH := p.TextSize(x.Condition.Text)
 		textW += margin / 2
 		textH = max(textH, margin)
-		bottom := max(thenW+1+elseW, textW+textW/2)
-		h := int(float64(bottom*textH)/float64(bottom-textW) + 0.5)
-		return bottom, h + 1 + max(thenH, elseH)
+		wantH := textH + textH/4 + margin
+		totalWByText := int(float64(wantH*textW)/float64(wantH-textH) + 0.5)
+		totalW := max(thenW+1+elseW, totalWByText)
+		h := int(float64(totalW*textH)/float64(totalW-textW) + 0.5)
+		return totalW, h + 1 + max(thenH, elseH)
 
 	case parser.Switch:
 		return 100, 30 // TODO
