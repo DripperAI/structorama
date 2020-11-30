@@ -110,10 +110,12 @@ parallel {
 			lastValidStructogram = s
 		}
 
-		paintStructogram(
-			offsetPainter{p: canvasPainter{c: canvas}, dx: 10, dy: 10},
-			lastValidStructogram,
-		)
+		if lastValidStructogram != nil {
+			paintStructogram(
+				offsetPainter{p: canvasPainter{c: canvas}, dx: 10, dy: 10},
+				lastValidStructogram,
+			)
+		}
 
 		if err != nil {
 			canvas.TextRectFormat(
@@ -475,7 +477,6 @@ func minSize(p painter, node interface{}) (width, height int) {
 		})
 
 	case parser.IfElse:
-		// TODO Consider TrueText and FalseText for size.
 		thenW, thenH := minSize(p, x.Then)
 		elseW, elseH := minSize(p, x.Else)
 		textW, textH := p.TextSize(x.Condition.Text)
@@ -485,6 +486,37 @@ func minSize(p painter, node interface{}) (width, height int) {
 		totalWByText := int(float64(wantH*textW)/float64(wantH-textH) + 0.5)
 		totalW := max(thenW+1+elseW, totalWByText)
 		topH := int(float64(totalW*textH)/float64(totalW-textW) + 0.5)
+
+		trueW, trueH := p.TextSize(x.TrueText.Text)
+		if trueW > 0 || trueH > 0 {
+			trueW += margin / 2
+			trueH += margin / 4
+			thenRatio := float64(thenW) / float64(thenW+elseW)
+			thenW := int(thenRatio*float64(totalW-1) + 0.5)
+			// f(x) = topH - (topH/thenW) * x
+			y := int(float64(topH) - (float64(topH)/float64(thenW))*float64(trueW) + 0.5)
+			dy := trueH - y
+			if dy > 0 {
+				totalW = int(float64(totalW)*float64(topH+dy)/float64(topH) + 0.5)
+				topH += dy
+			}
+		}
+
+		falseW, falseH := p.TextSize(x.FalseText.Text)
+		if falseW > 0 || falseH > 0 {
+			falseW += margin / 2
+			falseH += margin / 4
+			elseRatio := float64(elseW) / float64(thenW+elseW)
+			elseW := int(elseRatio*float64(totalW-1) + 0.5)
+			// f(x) = topH - (topH/elseW) * x
+			y := int(float64(topH) - (float64(topH)/float64(elseW))*float64(falseW) + 0.5)
+			dy := falseH - y
+			if dy > 0 {
+				totalW = int(float64(totalW)*float64(topH+dy)/float64(topH) + 0.5)
+				topH += dy
+			}
+		}
+
 		return totalW, topH + 1 + max(thenH, elseH)
 
 	case parser.Switch:
