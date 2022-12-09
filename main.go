@@ -12,7 +12,7 @@ import (
 	"github.com/jung-kurt/gofpdf"
 
 	"github.com/gonutz/gofont"
-	"github.com/gonutz/wui"
+	"github.com/gonutz/wui/v2"
 
 	"github.com/gonutz/structorama/parser"
 )
